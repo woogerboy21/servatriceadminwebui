@@ -1,0 +1,10 @@
+<Files ~ "^\.conf">
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</Files>
+<Files ~ "^\.auth">
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</Files>

@@ -1,0 +1,35 @@
+<?php
+                        session_start();
+                        if (!isset($_SESSION['username'])) {
+                                echo '<center>Please <a href="loginpage.php">login</a> to continue</center>';
+                                header('refresh 3: url=loginpage.php');
+                                exit;
+                        }
+
+                        if (isset($_SESSION['start'])) {
+                                $sessionlife = time() - $_SESSION['start'];
+                                if ($sessionlife > $_SESSION['timeout']){
+                                        echo '<center>Session Timeout<br>Please logout and <a href="loginpage.php">re-login</a> to continue</center>';
+                                        header('refresh 3: url=loginpage.php');
+                                        exit;
+                                } else {
+                                        $_SESSION['start'] = time();
+                                }
+                        } else {
+                                echo '<center>Please <a href="loginpage.php">login</a> to continue</center>';
+                                header('refresh 3: url=loginpage.php');
+                                exit;
+                        }
+                        if (!isset($_SESSION['admin'])) {
+                                echo '<center>Please <a href="loginpage.php">login</a> to continue</center>';
+                                header('refresh 3: url=loginpage.php');
+                                exit;
+                        } else {
+                                if ($_SESSION['admin'] < 1) {
+                                        echo '<center>Moderator Privilages Required</center><br>';
+                                        echo '<center>Please <a href="loginpage.php">login</a> to continue</center>';
+                                        header('refresh 3: url=loginpage.php');
+                                        exit;
+                                }
+                        }
+?>
