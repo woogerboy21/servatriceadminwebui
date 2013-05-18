@@ -1,3 +1,6 @@
+0.9l	update: updated add_user function to increase security against mysql injections (its dirty but should work for now)
+	update: updated update_user_table function to increase security against mysql injections (its dirty but should work for now)
+	update: updated add_abusecomplaint function to increase security against mysql injections (its dirty but should work for now)
 0.9k
 	remove: removed messaging functionality between moderators / administrators
 	update: updated "view all bans" page to sort by most recent ban first
