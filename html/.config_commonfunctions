@@ -183,7 +183,7 @@
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
 		$row = mysql_fetch_array($query);
 		if (strtolower(trim($about)) == strtolower(trim($row['name']))){ $reguser = "1"; } else { $reguser = "0"; }
-		$query = mysql_query("INSERT into " . trim($dbcoctable) . " (userfrom,userabout,aboutreguser,dtofproblem,gamenumber,briefdescription,message,datereported,screenshoturl) VALUES ('" . trim($from) . "','" . trim($about) . "','" . $reguser . "','" . trim(mysql_real_escape_string($dtofproblem)) . "','" . trim($gamenumber) . "','" . trim(mysql_real_escape_string($summary)) . "','" . trim(mysql_real_escape_string($message)) . "','" . date("Y-m-d H:i:s") . "','" . trim(mysql_real_escape_string($screenshoturl)) . "')");
+		$query = mysql_query("INSERT into " . trim($dbcoctable) . " (userfrom,userabout,aboutreguser,dtofproblem,gamenumber,briefdescription,message,datereported,screenshoturl) VALUES ('" . mysql_real_escape_string(trim($from)) . "','" . mysql_real_escape_string(trim($about)) . "','" . mysql_real_escape_string($reguser) . "','" . mysql_real_escape_string(trim(mysql_real_escape_string($dtofproblem))) . "','" . mysql_real_escape_string(trim($gamenumber)) . "','" . mysql_real_escape_string(trim(mysql_real_escape_string($summary))) . "','" . trim(mysql_real_escape_string($message)) . "','" . date("Y-m-d H:i:s") . "','" . trim(mysql_real_escape_string($screenshoturl)) . "')");
 		$results = $query;
 		mysql_close($dbconnection);
 		return $results;	
@@ -338,7 +338,7 @@
 		if (empty($registrationdate)){ $results = "failed, registration date can not be blank"; return $results; exit; }
 		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		$query = mysql_query("INSERT INTO " . trim($dbtable) . " (name,password_sha512,active,registrationDate) VALUES ('" . trim($username) . "','" . trim($encryptedpassword) . "',1,'" . $registrationdate . "')");
+		$query = mysql_query("INSERT INTO " . trim($dbtable) . " (name,password_sha512,active,registrationDate) VALUES ('" . mysql_real_escape_string(trim($username)) . "','" . trim($encryptedpassword) . "',1,'" . $registrationdate . "')");
 		if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
 		mysql_close($dbconnection);
 		return $results;
@@ -386,7 +386,7 @@
 		if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
 		if (strtolower($tablecolumn) == "country") { $tablecolumnvalue = strtolower($tablecolumnvalue); }
 		if (strtolower($tablecolumn) == "gender") { $tablecolumnvalue = strtolower($tablecolumnvalue); }
-                $query = mysql_query("UPDATE " . trim($dbtable) . " SET " . trim($tablecolumn) . "='" . trim($tablecolumnvalue) . "' WHERE name='" . trim($username) . "'");
+                $query = mysql_query("UPDATE " . trim($dbtable) . " SET " . trim($tablecolumn) . "='" . mysql_real_escape_string(trim($tablecolumnvalue)) . "' WHERE name='" . trim($username) . "'");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
