@@ -1,0 +1,11 @@
+GLOBIGNORE="*.sent"
+MAILFILEDIR="/var/www/cockatrice/registration"
+for file in $MAILFILEDIR/*.mail
+do
+	if [ -f $file ]
+	then
+		emailaddress=$(awk '/To:/' $file | awk '{split ($0,a,": "); print a[2]}')
+		/usr/sbin/ssmtp -vvvv $emailaddress < $file
+		mv $file $file.sent
+	fi
+done

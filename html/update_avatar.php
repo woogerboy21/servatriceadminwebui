@@ -19,11 +19,12 @@
 		<?php
 			$results = "unknown";
 			echo $_SESSION['username'] . "<br>";
-			$allowedExts = array("gif", "jpeg", "jpg", "png");
+			$allowedExts = array("gif", "jpeg", "jpg", "png", "bmp");
 			$extension = end(explode(".", $_FILES["file"]["name"]));
 			if ((($_FILES["file"]["type"] == "image/gif")
-			|| ($_FILES["file"]["type"] == "image/png"))
-			&& ($_FILES["file"]["size"] < 5000)
+			|| ($_FILES["file"]["type"] == "image/png")
+			|| ($_FILES["file"]["type"] == "image/bmp"))
+			&& ($_FILES["file"]["size"] < 65536)
 			&& in_array($extension, $allowedExts))
 		  	{
   				if ($_FILES["file"]["error"] > 0)

@@ -20,7 +20,7 @@
 				</tr>
 				<tr>
 					<td>Created On:</td>
-					<td><input type="text" name="start_time" size="35" maxlength="35" value="" /></td>
+					<td><input type="text" name="starttime" size="35" maxlength="35" value="" /></td>
 				</tr>
 				<tr>
 					<td align="center" colspan="2"><input type="submit" value="Delete Ban" /></td>

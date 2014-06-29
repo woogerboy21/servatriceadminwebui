@@ -19,6 +19,10 @@
 					<td>Name:</td>
 					<td><input type="text" name="username" size="35" maxlength="35" value="" /></td>
 				</tr>
+				<tr>
+					<td>Email:</td>
+					<td><input type="text" name="useremail" size="35" maxlength="35" value="" /></td>
+				</tr>
 				<tr><td align="center" colspan="2"><input type="submit" value="Locate" /></td></tr>
 			</table>
 		</form>

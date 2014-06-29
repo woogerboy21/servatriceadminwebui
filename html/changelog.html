@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<head>
+<title>Servatrice Administrator</title>
+</head>
+<html>
+        <body>
+                <table align="center" border="1" cellpadding="5">
+                        <tr>
+                                <td align="center"><a href="portal_servermanagement.php">Server Management Menu</a></td>
+                                <td align="center"><a href="logout.php">Logout</a></td>
+                        </tr>
+                        <tr>
+                                <td colspan="2">
+
+<p>
+0.9w<br>
+	added: incorrect log-in attempts logging<br>
+	update: added frame around the change log with table links matching the rest of the server management menu<br>
+</p>
+
+<p>
+0.9v<br>
+	update: added frame around code of conduct with a link to "home" to align page with other pages<br>
+	added: password recovery functionality for users to click and reset there passwords<br>
+	bugfix: corrected statistic page, removed extra/unused table row<br>
+</p>
+
+<p>
+0.9u<br>
+	added: moderators and administrators can now resend account verification emails to users using the account management page.<br>
+	bugfix: corrected versioning numbers<br>
+	bugfix: corrected account registration when using special characters in user names<br>
+</p>
+
+<p>
+0.9t<br>
+	added: added the ability to search for user accounts to update by email address<br>
+</p>
+
+<p>
+0.9s<br>
+	update: new user creation now verifies that email address is not already in use, if it is new account is not created<br>
+	bugfix: updated authentication to verify if username exists if email address is already in use to display correct error message<br>
+	added: added admin notes section to user account that can have annotations by the admins (only viewable by admins/moderators)<br>
+</p>
+
+<p>
+0.9r<br>
+	bugfix: web management interface now does not allow users to log in if there account is inactive<br>
+	update: added the ability for admins and moderators to set accounts as active or inactive<br>
+	added: email verification functionality for new accounts (can be enabled or disabled)<br>
+</p>
+
+<p>
+0.9q<br>
+	update: added email requirement to register account (for future email verification)<br>
+</p>
+
+<p>
+0.9p<br>
+	update: corrected escaping of sql entries when adding notes to complaints or while placing final verdict text in while closing complaints.<br>
+</p>
+
+
+<p>
+0.9o<br>
+	update: changed the update ban authentication to allow moderators rights to update ban information<br>
+	update: updated the "view all bans" page to include buttons to update and delete the ban per row shown<br>
+</p>
+
+<p>
+0.9n<br>
+	added: added the ability for users to delete player avatars<br>
+	update: updated the upload avatar functionality to be on a single user management page<br>
+	bugfix: avatar functionality now passes user names correctly so admin/mods can now update other players avatars<br>
+	bugfix: corrected versioning numbers to reflect letters as minor revision code<br>
+	removed: md5 sum file containing checksums of all the files in the release<br>
+</p>
+
+<p>
+0.9m<br>
+	added: added ability for users to upload player avatars<br>
+</p>
+
+<p>
+0.9l<br>
+	update: updated add_user function to increase security against mysql injections (its dirty but should work for now)<br>
+	update: updated update_user_table function to increase security against mysql injections (its dirty but should work for now)<br>
+	update: updated add_abusecomplaint function to increase security against mysql injections (its dirty but should work for now)<br>
+</p>
+
+<p>
+0.9k<br>
+	remove: removed messaging functionality between moderators / administrators<br>
+	update: updated "view all bans" page to sort by most recent ban first<br>
+	added: created complaint management administrator portal and moved all complaint links under it<br>
+	added: added screenshot url box on report abuse page for users to place the URL to screenshots stored on an image hosting site<br>
+	added: added closing verdict field on complaints, now you must state a verdict to the case closure before closing<br>
+</p>
+
+<p>
+0.9j<br>
+	bugfix: fixed update user gender to always be lower case<br>
+	bugfix: fixed add ban page to correctly identify logged in username to allow adding bans through webui<br>
+	bugfix: portal_manageaccount now does not display message count in banner<br>
+	update: view all bans now sorts banlist by date order<br>
+	update: changed the "description" box to a textarea for easier reading when viewing closed complaint details<br>
+	update: changed the "description" box to a textarea for easier reading when viewing complaint details<br>
+	update: changed "read message" to "inbox"<br>
+	added: ability to send messages to "administrators" or "moderators" group listing, name lists are built through config file<br>
+	added: created outbox to view a summary of messages that havent been read<br>
+	added: statistics.php page now accepts date variable and passes it accordingly to the displayed statistics page<br>
+	added: daily statistics (games/transfer) now excepts date variable passing in the URL.<br>
+        (ex: http://website/statistics_usersgamesdaily.php?date=2013-03-24 will show the stats for 03/24/2013)<br>
+</p>
+
+<p>
+0.9i<br>
+	update: added auto refresh to each of the statistics pages to refresh every so many seconds defined in the config file<br>
+	update: added the ability to turn on or off the complaint management portion of admin site through config file<br>
+	update: added the ability to turn on or off the message management portion of the admin site through the config file<br>
+	bugfix: updated updateaccount.php to correctly adjust user settings when admin's edit account information<br>
+	bugfix: allow administrators to change user priv levels back to user<br>
+</p>
+
+<p>
+0.9h<br>
+	update: configured claiming complaints to not allow moderators to claim complaints about themselves<br>
+	added: ability to view closed complaints from the bannings menu<br>
+</p>
+
+<p>
+0.9j<br>
+	update: complete rewrite of authentication to allow for different privilege level understanding<br>
+	update: added admin/mod count to top of message management page<br>
+	update: added message count to admin portal pages<br>
+	update: added ability to go back to message list when viewing a message<br>
+	update: added registered user column to "view user logins" to identify if a username is registered or not<br>
+	update: statistics page "home" link will now base href on privilege level and redirect clients according to logged in privilege level<br>
+	update: delete a message page now uses checkboxes rather than radio buttons to allow multiple messages to be deleted at one<br>
+	update: send message now allows multiple users to be specified in the "to" field. use ; as a delimiter between multiple user names<br>
+	bugfix: allow ban's to include special characters<br>
+	bugfix: allow ban's to be created through web ui for longer durations than a single digit time frame<br>
+	added: user portal<br>
+	added: user portal urgent message<br>
+	added: user report abuse page<br>
+	added: user view administors / moderators page<br>
+	added: logged in user name for all portal pages<br>
+	added: logged in moderator count on admin portal is now a link that will popup window containing moderator/admin names<br>
+	added: logged in users privilege level to all admin portal pages<br>
+	added: admin abuse management capabilities.  take ownership, add notes, and close complaints filed by users<br>
+        added: admin's have the ability to update ban details. increase ban time, update reason information.<br>
+	added: admin "locate user logins" shows an admin/moderator all sessions of user by username<br>
+	added: admin "locate user logins on ip" shows an admin/moderator for all user names based on ip address<br>
+	**NOTE** locate user logins by ip is to be used with an understanding that most users have a dynamic ip address **NOTE**<br>
+	**NOTE** and it is possible that a users ip address may change and could be end up to be used by another player **NOTE**<br>
+	**NOTE** without there knowing.											**NOTE**<br>
+</p>
+
+<p>
+0.9i<br>
+	added: added cockatrice_cocreport table in database for code of conduct reporting<br>
+	added: subject line to messages<br>
+	update: added subject line to cockatrice_usermessages table for message subject line<br>
+	update: added ip address listing to the admin_viewban page<br>
+	ui: added statistics link to admin portal page<br>
+</p>
+
+<p>
+0.9h<br>
+	bugfix: messages contain ' can now be sent<br>
+	added: reply button to view message screen<br>
+	added: created link off server management portal page to view changelog<br>
+</p>
+
+<p>
+0.9g<br>
+	added: md5sum file containing sums of all files in release<br>
+	added: changelog created<br>
+	added: admin/moderator message system<br>
+	added: admin/moderator view page under "account management"<br>
+	bugfix: admin being able to demote a moderator/admin<br>
+	ui: corrected minor mis-spelling in view ban results<br>
+	ui: updated all administrator portal pages to have similar layout<br>
+</p>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>

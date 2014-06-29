@@ -29,3 +29,5 @@ CREATE TABLE IF NOT EXISTS `cockatrice_cocreports` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+ALTER TABLE cockatrice_users ADD adminnotes VARCHAR(255) NOT NULL;

@@ -18,15 +18,12 @@
 					<?php
 						if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 							$user = $_POST['username'];
-							if (empty($user)){ echo "failed, user name can not be blank"; exit; }
 							$ipaddress = $_POST['ipaddress'];
-							if (empty($ipaddress)){ echo "failed, ip address can not be blank"; exit; }
 							$modname = $_POST['modname'];
 							if (empty($modname)){ $modname = $_SESSION['username']; }
 							$start = $_POST['starttime'];
 							if (empty($start)) { $start = date("Y-m-d H:i:s"); }
 							$duration = $_POST['duration'];
-							if (empty($duration)){ echo "failed, duration time can not be blank"; exit; }
 							$reason = $_POST['reason'];
 							if (empty($reason)){ echo "failed, reason can not be blank"; exit; }
 							$displayreason = $_POST['displayreason'];

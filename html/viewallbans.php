@@ -10,13 +10,15 @@
 			global $configfile;
 		?>
 		<table align="center" border="1" cellpadding="5">
-			<form action="purgebannings.php" method="post">
 				<table border="1" align="center" cellpadding="3">
 					<tr>
-		                                <td align="center" colspan="6"><a href="portal_banningsmanagement.php">Banning Management Menu</a></td>
-                       				<td align="center"><a href="logout.php">Logout</a></td>
+		                                <td align="center" colspan="3"><a href="portal_banningsmanagement.php">Banning Management Menu</a></td>
+                       				<td align="center" colspan="2"><a href="logout.php">Logout</a></td>
+						<td colspan="4"></td>
 		                        </tr>
 					<tr>
+						<td></td>
+						<td></td>
 						<td>Username</td>
 						<td>IP Address</td>
 						<td>Moderator</td>
@@ -45,20 +47,27 @@
 							$i = $i + 1;
 							$moderatorname = locate_username_byid($row['id_admin']);
 							echo '<tr>';
-							echo '<td>' . $row['user_name'] . '</td>';
-							echo '<td>' . $row['ip_address'] . '</td>';
-							echo '<td>' . $moderatorname . '</td>';
-							echo '<td>' . $row['time_from'] . '</td>';
-							echo '<td>' . $row['minutes'] . '</td>';
-							echo '<td>' . $row['reason'] . '</td>';
-							echo '<td>' . $row['visible_reason'] . '</td>';
+							echo '<form action="deleteban.php" method="post">';
+                                                        echo '<td align="center"><input type="submit" value="Delete" /></td>';
+                                                        echo '<input type="hidden" name="username" value="' . $row['user_name'] . '">';
+                                                        echo '<input type="hidden" name="starttime" value="' .  $row['time_from'] . '">';
+                                                        echo '</form>';
+							echo '<form action="updateaban.php" method="post">';
+							echo '<td align="center"><input type="submit" value="Update" /></td>';
+							echo '<td><input type="text" name="username" value="' . $row['user_name'] . '" size="35" readonly></td>';
+							echo '<td><input type="text" name="ipaddress" value="' . $row['ip_address'] . '" size="13" readonly></td>';
+							echo '<td><input type="text" name="moderator" value="' . $moderatorname . '" size="15" readonly></td>';
+							echo '<td><input type="text" name="starttime" value="' . $row['time_from'] . '" size="20" readonly></td>';
+							echo '<td><input type="text" name="minutes" value="' . $row['minutes'] . '" size="4" readonly></td>';
+							echo '<td><input type="text" name="reason" value="' . $row['reason'] . '" size="255" readonly></td>';
+							echo '<td><input type="text" name="visiblereason" value="' . $row['visible_reason'] . '" size="255" readonly></td>';
+							echo '</form>';
 							echo '</tr>';
 						}	
 						mysql_close($dbconnection);
 						echo '<tr><td colspan="7" align="right">' . $i . ' Total Bans</td></tr>';
 					?>
 				</table>
-			</form>
 		</table>
 	</body>
 </html>

@@ -19,11 +19,12 @@
 						if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 							$usernametoregister = $_POST["nametoregister"];
 							$passwordtoregister = $_POST["passwordtouse"];
+							$emailtoregister = $_POST["emailtouse"];
 							if (empty($usernametoregister)){ echo "invalid username, please retry"; exit; }
 							if (empty($passwordtoregister)){ echo "invalid password, please retry"; exit; }
-							$creationresults = add_user($usernametoregister,$passwordtoregister);
-							if (strpos(strtolower($creationresults),"success") !== false){ echo "User account created successfully"; }
-							if (strpos(strtolower($creationresults),"fail") !== false){ echo "Failed to create user account"; }
+							if (empty($emailtoregister)){ echo "invalid email, please retry"; exit; }
+							$creationresults = add_user($usernametoregister,$passwordtoregister,$emailtoregister);
+							echo $creationresults;
 						}
 					?>
 				</td>

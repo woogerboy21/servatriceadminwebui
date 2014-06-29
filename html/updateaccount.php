@@ -68,13 +68,21 @@
 								$results = update_user_table($_POST['name'],"registrationDate",trim($_POST['registrationDate']));
 								if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
 							}
-							if (!empty($_POST['active'])){
-								$results = update_user_table($_POST['name'],"realname",trim($_POST['active']));
+							if (isset($_POST['active'])){
+								$results = update_user_table($_POST['name'],"active",$_POST['active']);
                                                                 if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
 							}
 							if (!empty($_POST['token'])){
-								$results = update_user_table($_POST['name'],"realname",trim($_POST['token']));
+								$results = update_user_table($_POST['name'],"token",trim($_POST['token']));
                                                                 if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
+							}
+							if (isset($_POST['deleteavatar'])) {
+								$results = delete_avatar($_POST['name']);
+								if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
+							}
+							if (!empty($_POST['adminnotes'])) {
+								$results = update_user_table($_POST['name'],"adminnotes",trim($_POST['adminnotes']));
+								if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
 							}
 							echo "User account updated";
 						}

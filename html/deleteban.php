@@ -19,7 +19,7 @@
 						if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 							$user = $_POST['username'];
 							if (empty($user)){ echo "failed, user name can not be blank"; exit; }
-							$timestamp = $_POST['start_time'];
+							$timestamp = $_POST['starttime'];
 							if (empty($timestamp)){ echo "failed, created on time stamp can not be blank"; exit; }
 							$results = delete_ban($user,$timestamp);
 							if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }

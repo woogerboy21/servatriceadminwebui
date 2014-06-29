@@ -17,16 +17,17 @@
 				<td align="center"><a href="./statistics_rxtxdaily.php<?php echo "?date=" . $currentdate ?>" target="chart">Rx/Tx Daily</a></td>
 			</tr>
 			<tr>
-				<td>
 					<?php
-						$found = strrpos($_SERVER['HTTP_USER_AGENT'],"MSIE");
+						$found = strrpos($_SERVER['HTTP_USER_AGENT'],"MSIE6");
 						if ($found == true){
 							echo '<tr><td colspan="5" align="center">IE Unsupported Browser ( Try <a href="http://www.mozilla.org/en-US/firefox/new/">FireFox</a> )</td></tr>';
 						} else {
 							echo '<tr><td colspan="5"><iframe name="chart" src="./statistics_usersgameshourly.php" width="950" height="575"></iframe></td></tr>';
 						}
 					?>
-				</td>
+			</tr>
+			<tr>
+				<td align="right" colspan="5"><a href="whoisloggedin.php">Who's All Logged In?</a></td>
 			</tr>
 		</table>
 	</body>
