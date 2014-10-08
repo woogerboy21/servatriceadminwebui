@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-<title>Servatrice Administrator</title>
+<title>Cockatrice Account Registration</title>
 </head>
 <html>
 	<body>

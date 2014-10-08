@@ -21,12 +21,12 @@
 				<td><a href="admin_portal.php">Administration Menu</a></td>
 				<?php 
 					if ($_SESSION['admin'] != 1){ 
-						echo '<td rowspan="4" colspan="2" align="center">';
+						echo '<td rowspan="8" colspan="2" align="center">';
                                                 if(!empty($banner)){ echo $banner; }
                                                 echo '</td>';
 					}
 					if ($_SESSION['admin'] == 1){
-						echo '<td rowspan="5" colspan="2" align="center">';
+						echo '<td rowspan="7" colspan="2" align="center">';
                                                 if(!empty($banner)){ echo $banner; }
                                                 echo '</td>';
 					}
@@ -37,6 +37,8 @@
 			<tr><td><a href="bandelete.php">Delete a Ban</a></td></tr>
 			<?php /* if ($_SESSION['admin'] == 1){ echo '<tr><td><a href="locatebantoupdate.php">Update a Ban</a></td></tr>'; } */ ?> 
 			<!-- <tr><td><a href="locatebantoupdate.php">Update a Ban</a></td></tr> -->
+			<tr><td><a href="locateusersbans.php">Locate User Bans</a></td></tr>
+			<tr><td><a href="locateipbans.php">Locate IP Bans</a></td></tr>
 			<tr><td><a href="logout.php">Logout</a></td></tr>
 			<?php include 'admin_footer.php'; ?>
 		</table>

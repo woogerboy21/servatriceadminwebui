@@ -20,12 +20,12 @@
 				<td><a href="admin_portal.php">Administration Menu</a></td>
 				<?php
 					if($_SESSION['admin'] != 1){
-                                                echo '<td rowspan="6" colspan="2" align="center">';
+                                                echo '<td rowspan="7" colspan="2" align="center">';
                                                 if (!empty($banner)){ echo $banner; }
                                                 echo '</td>';
                                         }
 					if($_SESSION['admin'] == 1){
-						echo '<td rowspan="6" colspan="2" align="center">';
+						echo '<td rowspan="7" colspan="2" align="center">';
 						if (!empty($banner)){ echo $banner; }
 						echo '</td>';
 					}
@@ -35,6 +35,7 @@
 			<tr><td><a href="locateloggedinusersip.php">Locate Logged in Users IP</a></td></tr>
 			<tr><td><a href="locateuserloginsbyname.php">Locate User Logins by Name</a></td></tr>
 			<tr><td><a href="locateuserloginsbyip.php">Locate User Logins by IP</a></td></tr>
+			<tr><td><a href="locateusersuniqueipbyname.php">Locate Users Historical IP Information</a></td></tr>
 			<tr><td><a href="logout.php">Logout</a></td></tr>
 			<?php include 'admin_footer.php'; ?>
 		</table>

@@ -8,7 +8,7 @@
 			require '.auth_modsession';
 			require '.config_commonfunctions';
 			global $configfile;
-			$iptofind = $_POST['ipaddress'];
+			$usertofind = $_POST['name'];
 		?>
 		<table align="center" border="1" cellpadding="5">
 			<tr>
@@ -19,11 +19,7 @@
 				<td colspan="2">
 					<table border="1" align="center" cellpadding="3">
 						<tr>
-							<td>Username</td>
 							<td>IP Address</td>
-							<td>Reg User</td>
-							<td>Login Time</td>
-                                                        <td>Logout Time</td>
 						</tr>
 						<?php
 							$dbserv = get_config_value($configfile,"dbserver");
@@ -32,7 +28,7 @@
 							$dbname = get_config_value($configfile,"dbname");
 							$dbtable = get_config_value($configfile,"dbsessiontable");
 							$dbusertable = get_config_value($configfile,"dbusertable");
-							if (empty($iptofind)){ echo '<tr><td align="center" colspan="4">Failed to determin ip address to locate</td></tr>'; exit; }
+							if (empty($usertofind)){ echo '<tr><td align="center" colspan="4">Failed to determin user name to locate</td></tr>'; exit; }
 							if (strpos(strtolower($dbserv),"fail") !== false){ $results = strtolower($dbserv); return $results; exit; }
 							if (strpos(strtolower($dbuser),"fail") !== false){ $results = strtolower($dbuser); return $results; exit; }
 							if (strpos(strtolower($dbpass),"fail") !== false){ $results = strtolower($dbpass); return $results; exit; }
@@ -41,20 +37,14 @@
 							if (strpos(strtolower($dbusertable),"fail") !== false){ $results = strtolower($dbusertable); return $results; exit; }
 							$dbconnection = connect_to_database($dbserv,$dbuser,$dbpass,$dbname);
 							if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-							$query = mysql_query("SELECT * FROM " . $dbtable . " WHERE ip_address='" . $iptofind . "' order by start_time ASC");
+							$query = mysql_query("SELECT DISTINCT(ip_address) FROM " . $dbtable . " WHERE user_name='" . $usertofind . "'");
                 	               			if (!query){ $results = "failed, " . mysql_error(); return $results; exit; }
 							while ($row = mysql_fetch_array($query)){
-								$regquery = mysql_query("SELECT name FROM " . $dbusertable . " WHERE name='" . $row['user_name'] . "'");
-								if (!regquery){ $results = "failed, " . mysql_error(); return results; exit; }
-								$regrow = mysql_fetch_array($regquery);
 								echo '<tr>';
-								echo '<td>' . $row['user_name'] . '</td>';
 								echo '<td>' . $row['ip_address'] . '</td>';
-								if (strtolower($regrow['name']) == strtolower($row['user_name'])){ echo "<td>YES</td>"; } else { echo "<td>NO</td>"; }
-								echo '<td>' . $row['start_time'] . '</td>';
-                                                                if ($row['end_time'] == 'NULL'){ echo '<td></td>'; } else { echo '<td>' . $row['end_time'] . '</td>'; }
-                                                                echo '</tr>';
+								echo '</tr>';
 							}
+							echo '<tr><td colspan="5" align="right">(' . $usertofind . ') User IPs</td></tr>';	
 							mysql_close($dbconnection);
 						?>
 					</table>

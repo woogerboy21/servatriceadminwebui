@@ -43,7 +43,7 @@
 			if (empty($doesuserexist)){
 				echo '<center>Account does not exist for username (' . $inputedusername . ')<br>Please try again<center>';
 			} else {
-				echo '<center>User account has not been activated yet.<br>Please follow the instructions sent to you after registration to enable your account.<br>Please <a href="http://www.woogerworks.com/index.php/contactus">contact us</a> for assistance</center>';
+				echo '<center>User account has not been activated yet.<br>Please follow the instructions sent to you after registration to enable your account.<br>Please <a href="http://www.woogerworks.com/index.php/let-us-know">contact us</a> for assistance</center>';
 			}
 		}
 	}

@@ -20,7 +20,7 @@
 		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
 		//insert image into database
-		$query = mysql_query("UPDATE " . $dbtable . " SET avatar_bmp='" . $data . "' WHERE name='" . $username . "'");
+		$query = mysql_query("UPDATE " . $dbtable . " SET avatar_bmp='" . $data . "' WHERE name='" . mysql_real_escape_string($username) . "'");
 		$results = $query;
                 mysql_close($dbconnection);
                 return $results;	
@@ -387,6 +387,13 @@
 		if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
 		if (empty($registrationdate)){ $results = "failed, registration date can not be blank"; return $results; exit; }
 		if (empty($requireverification)){ $results = "failed, registration requirement can not be blank"; return $results; exit; }
+
+		// account restriction filters
+		if (strpos(strtolower($email),'@trbvm.com') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+		if (strpos(strtolower($email),'bardnarson') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+		if (strpos(strtolower($email),'barnarson') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+		if (strpos(strtolower($email),'ryanbraundunn') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+		
 		if (empty($emailexists)){
 			$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
         	        if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
@@ -395,7 +402,7 @@
 				if ($query){
 					generate_accountverificationfile($username);
 					// $results = "Successfully created user account.<br>An email verification will be sent shortly.<br>";
-					$results = "<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account.<br />Emails can take up to 15 minutes to receive.</center>";
+					$results = "<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account. Activation emails can take up to 10 minutes to receive so please be patient.</center>";
 				} else {
 					$results = "failed, " . mysql_error();
 				}
