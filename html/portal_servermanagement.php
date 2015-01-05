@@ -28,7 +28,7 @@
 			<tr><td><a href="deleteuptimedata.php">Delete Uptime Data</a></td></tr>
 			<tr><td><a href="changelog.html">View Servatrice Administrator Changelog</a></td></tr>
 			<tr><td><a href="viewfla.php">View Failed Log-In Attempts</a></td></tr>
-			<tr><td><a href="viewlogs.php">View Chat Logs</a></td></tr>
+			<tr><td><a href="viewlog.php">View Chat Logs</a></td></tr>
 			<tr><td><a href="logout.php">Logout</a></td></tr>
 			<?php include 'admin_footer.php'; ?>
 		</table>
