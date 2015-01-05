@@ -11,6 +11,7 @@
 <body>
 	<?php
 		require '.auth_modsession';
+		require '.config';
 		require '.config_commonfunctions';
 		global $configfile;
 		?>
