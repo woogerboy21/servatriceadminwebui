@@ -50,7 +50,7 @@
         }
         
         /* BUILD QUERY BASE */
-        $max_results_q = (intval($_REQUEST['max_results']) > 0) ? "LIMIT 0," . intval($_REQUEST['max_results']) : "2000"; // Default is 2000
+        $max_results_q = (intval($_REQUEST['max_results']) > 0) ? "LIMIT 0," . intval($_REQUEST['max_results']) : "LIMIT 0,2000"; // Default is 2000
         $user_q = (isset($username)) ? "AND (`sender_name` = '$username' OR `target_name` = '$username')" : "";
         $ip_q = isset($ip_to_find) ? "AND `sender_ip` = '$ip_to_find'" : "";
         $game_id_q = isset($game_id) ? "AND (`target_id` = '$game_id' AND `target_type` = 'game')" : "";
