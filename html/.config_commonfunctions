@@ -102,8 +102,10 @@
                         
                         $ip = $row['sender_ip'];
                         $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+						
+						$log_message = htmlspecialchars($row['log_message']);
                         
-                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>{$row['log_message']}</td><td>{$row['log_time']}</td></tr>\n";
+                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     echo "</table><br/>\n";
                 break;
@@ -125,8 +127,10 @@
                         
                         $game_name = $row['target_name'];
                         $game_name_with_link = "<a href='?game_name=$game_name'>$game_name</a>";
+						
+						$log_message = htmlspecialchars($row['log_message']);
                         
-                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>{$row['log_message']}</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
+                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     echo "</table><br/>\n";
                 break;
@@ -144,8 +148,10 @@
                         
                         $receiver = $row['target_name'];
                         $receiver_with_link = "<a href='?username=$receiver'>$receiver</a>";
+						
+						$log_message = htmlspecialchars($row['log_message']);
                     
-                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>{$row['log_message']}</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
+                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     echo "</table><br/>\n";
                 break;
