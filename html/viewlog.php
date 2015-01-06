@@ -54,7 +54,7 @@
 		</tr>
 		<tr>
 			<td style="width:150px">Maximum Results</td>
-			<td style="width:250px"><input type="text" name="max_results" placeHolder="Unlimited" value="<?=$_REQUEST['max_results']?>" style="width:200px; text-align: center;"></td>
+			<td style="width:250px"><input type="text" name="max_results" placeHolder="2000" value="<?=$_REQUEST['max_results']?>" style="width:200px; text-align: center;"></td>
 		</tr>
 		<tr>
 			<td colspan="2" style="width:400px">
