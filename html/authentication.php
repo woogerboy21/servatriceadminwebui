@@ -35,9 +35,20 @@
 	                $_SESSION['timeout'] = 300;
 	                $_SESSION['start'] = time();
 			$_SESSION['admin'] = $useradminlevel;
-			if ($useradminlevel > 0){ header('Location: admin_portal.php'); exit; }
-			header('Location: user_portal.php');
-			exit;
+
+			$redirect_location = $_POST['redirect'];
+			if (strlen($redirect_location) > 0)
+			{
+				header("Location: $redirect_location");
+			}
+			else if ($useradminlevel > 0)
+			{
+				header('Location: admin_portal.php');
+			}
+			else
+			{
+				header('Location: user_portal.php');
+			}
 		} else {
 			$doesuserexist = check_if_user_exists($inputedusername);
 			if (empty($doesuserexist)){
