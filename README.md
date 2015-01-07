@@ -3,7 +3,7 @@ Servatrice Admin WebUI
 
 A PHP Based Web Administrator UI for the Cockatrice Server (Servatrice)
 
-Cockatrice's source can be found at (https://github.com/Daenyth/Cockatrice)
+Cockatrice's source can be found at (https://github.com/Cockatrice)
 
 Chat with the developers on Gitter.
 
