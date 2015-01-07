@@ -93,18 +93,18 @@
             switch ($get_logs_from[$i])
             {
                 case "room":
-                    echo "<table border=1><tr><th colspan=4>Main Chat Room Logs</th></tr>\n";
-                    echo "<tr><th style='min-width:150px; max-width=150px;'>Sender</th><th style='min-width:120px; max-width=120px;'>IP Address</th><th style='min-width:300px; max-width=300px;'>Message</th><th style='min-width:150px; max-width=150px;'>Time Stamp</th></tr>\n";
+					echo "<table border=1><tr><th colspan=4>Main Chat Room Logs</th></tr>\n";
+					echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:150px'>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
                         $username = $row['sender_name'];
                         $name_with_link = "<a href='?username=$username'>$username</a>";
                         
                         $ip = $row['sender_ip'];
-                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
-						
-						$log_message = htmlspecialchars($row['log_message']);
-                        
+						$ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+
+						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     echo "</table><br/>\n";
@@ -112,8 +112,7 @@
                 
                 case "game":
                     echo "<table border=1><tr><th colspan=6>Game Chat Logs</th></tr>\n";
-                    echo "<tr><th style='min-width:150px; max-width=150px;'>Sender</th><th style='min-width:120px; max-width=120px;'>IP Address</th><th style='min-width:300px; max-width=300px;'>Message</th><th style='min-width:150px; max-width=150px;'>Game ID</th>";
-                    echo "<th style='min-width:200px; max-width=200px;'>Game Name</th><th style='min-width:150px; max-width=150px;'>Time Stamp</th></tr>\n";
+                    echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:150px'>Game ID</th><th style='width:200px'>Game Name</th><th style='width:150px'>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
                         $username = $row['sender_name'];
@@ -127,17 +126,17 @@
                         
                         $game_name = $row['target_name'];
                         $game_name_with_link = "<a href='?game_name=$game_name'>$game_name</a>";
-						
-						$log_message = htmlspecialchars($row['log_message']);
+
+						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
                         
-                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
+						echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     echo "</table><br/>\n";
                 break;
                 
                 case "chat":
                     echo "<table border=1><tr><th colspan=5>Private Chat Logs</th></tr>\n";
-                    echo "<tr><th style='min-width:150px; max-width=150px;'>Sender</th><th style='min-width:120px; max-width=120px;'>IP Address</th><th style='min-width:300px; max-width=300px;'>Message</th><th style='min-width:200px; max-width=200px;'>Receiver</th><th style='min-width:150px; max-width=150px;'>Time Stamp</th></tr>\n";
+                    echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:200px'>Receiver</th><th style='width:150px'>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
                         $username = $row['sender_name'];
@@ -148,8 +147,8 @@
                         
                         $receiver = $row['target_name'];
                         $receiver_with_link = "<a href='?username=$receiver'>$receiver</a>";
-						
-						$log_message = htmlspecialchars($row['log_message']);
+
+						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
                     
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }

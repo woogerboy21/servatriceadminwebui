@@ -2,42 +2,39 @@
 <head>
 	<title>Servatrice Administrator</title>
 	<meta name="author" content="Zach H (ZeldaZach)">
-	<style>
-		td {text-align:center;}
-	</style>
-	<?php
-		require '.auth_modsession';
-		require '.config_commonfunctions';
+	<style> td {text-align:center;} </style>
+<?php
+	require '.auth_modsession';
+	require '.config_commonfunctions';
+	
+	header("Content-Type: text/html; charset=ISO-8859-1"); // Fixes some characters	
 
-		if ($_REQUEST['submit_filter'])
+	if ($_REQUEST['submit_filter']) // Clear filters
+	{
+		die(header("Location: viewlog.php"));
+	}
+
+	$checked = array(); // Determine which checkboxes/radio buttons to keep checked
+	for ($i = 0; $i < 6; $i++)
+	{
+		if ($_REQUEST["type_of_chat"][$i])
 		{
-			header("Location: viewlog.php"); // Clear filters
+			$checked[$i] = "checked";
 		}
-
-			$checked = array();
-			for ($i = 0; $i < 6; $i++)
-			{
-				if ($_REQUEST["type_of_chat"][$i])/// || $_REQUEST["from_date"][$i])
-				{
-					$checked[$i] = "checked";
-				}
-				else if ($_REQUEST["from_date"] == "week")
-				{
-					$checked[3] = "checked";
-				}
-				else if ($_REQUEST["from_date"] == "day")
-				{
-					$checked[4] = "checked";
-				}
-				else if ($_REQUEST["from_date"] == "hour")
-				{
-					$checked[5] = "checked";
-				}
-			}
-			
-			
-		#	var_dump($_REQUEST);
-	?>
+		else if ($_REQUEST["from_date"] == "week")
+		{
+			$checked[3] = "checked";
+		}
+		else if ($_REQUEST["from_date"] == "day")
+		{
+			$checked[4] = "checked";
+		}
+		else if ($_REQUEST["from_date"] == "hour")
+		{
+			$checked[5] = "checked";
+		}
+	}
+?>
 </head>
 <body>
 	<center>
@@ -49,19 +46,19 @@
 		</tr>
 		<tr>
 			<td style="min-width:150px">Find By Username</td>
-			<td style="min-width:250px"><input type="text" name="username" placeHolder="Username" value="<?=$_REQUEST['username']?>" style="min-width:200px; text-align: center;"></td>
+			<td style="min-width:250px"><input type="text" name="username" placeHolder="Username" value="<?=$_REQUEST['username']?>" style="width:200px; text-align: center;"></td>
 		</tr>
 		<tr>
 			<td style="min-width:150px">Find By IP Address</td>
-			<td style="min-width:250px"><input type="text" name="ip_address" placeHolder="127.0.0.1" value="<?=$_REQUEST['ip_address']?>" style="min-width:200px; text-align: center;"></td>
+			<td style="min-width:250px"><input type="text" name="ip_address" placeHolder="127.0.0.1" value="<?=$_REQUEST['ip_address']?>" style="width:200px; text-align: center;"></td>
 		</tr>
 		<tr>
 			<td style="min-width:150px">Find By Game ID</td>
-			<td style="min-width:250px"><input type="text" name="game_id" placeHolder="Game ID" value="<?=$_REQUEST['game_id']?>" style="min-width:200px; text-align: center;"></td>
+			<td style="min-width:250px"><input type="text" name="game_id" placeHolder="Game ID" value="<?=$_REQUEST['game_id']?>" style="width:200px; text-align: center;"></td>
 		</tr>
 		<tr>
 			<td style="min-width:150px">Find By Game Name</td>
-			<td style="min-width:250px"><input type="text" name="game_name" placeHolder="Game Name" value="<?=$_REQUEST['game_name']?>" style="min-width:200px; text-align: center;"></td>
+			<td style="min-width:250px"><input type="text" name="game_name" placeHolder="Game Name" value="<?=$_REQUEST['game_name']?>" style="width:200px; text-align: center;"></td>
 		</tr>
 		<tr>
 			<td>Log Location</td>
@@ -85,7 +82,7 @@
 		</tr>
 		<tr>
 			<td style="min-width:150px">Maximum Results</td>
-			<td style="min-width:250px"><input type="text" name="max_results" placeHolder="500" value="<?=$_REQUEST['max_results']?>" style="min-width:200px; text-align: center;"></td>
+			<td style="min-width:250px"><input type="text" name="max_results" placeHolder="500" value="<?=$_REQUEST['max_results']?>" style="width:200px; text-align: center;"></td>
 		</tr>
 		<tr>
 			<td colspan="2" style="min-width:400px">
@@ -94,8 +91,8 @@
 		</tr>
 		<tr>
 			<td colspan="2" style="min-width:400px">
-				<input type="submit" name="submit_filter" value="Clear Filters" style="min-width:150px">
-				<input type="submit" name="submit" value="Get User Logs" style="min-width:150px">
+				<input type="submit" name="submit_filter" value="Clear Filters" style="width:150px">
+				<input type="submit" name="submit" value="Get User Logs" style="width:150px">
 			</td>
 		</tr>
 	</table>
@@ -110,4 +107,3 @@
 </center>
 </body>
 </html>
-
