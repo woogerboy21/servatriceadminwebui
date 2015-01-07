@@ -94,7 +94,7 @@
             {
                 case "room":
                     echo "<table border=1><tr><th colspan=4>Main Chat Room Logs</th></tr>\n";
-                    echo "<tr><th width=150px>Sender</th><th width=120px>IP Address</th><th width=300px>Message</th><th width=150px>Time Stamp</th></tr>\n";
+                    echo "<tr><th min-width=150px max-width=200px>Sender</th><th min-width=120px max-width=170px>IP Address</th><th min-width=300px max-width=350px>Message</th><th min-width=150px max-width=200px>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
                         $username = $row['sender_name'];
@@ -112,8 +112,8 @@
                 
                 case "game":
                     echo "<table border=1><tr><th colspan=6>Game Chat Logs</th></tr>\n";
-                    echo "<tr><th width=150px>Sender</th><th width=120px>IP Address</th><th width=300px>Message</th><th width=150px>Game ID</th>";
-                    echo "<th width=200px>Game Name</th><th width=150px>Time Stamp</th></tr>\n";
+                    echo "<tr><th min-width=150px max-width=200px>Sender</th><th min-width=120px max-width=170px>IP Address</th><th min-width=300px max-width=350px>Message</th><th min-width=150px max-width=200px>Game ID</th>";
+                    echo "<th min-width=200px max-width=250px>Game Name</th><th min-width=150px max-width=200px>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
                         $username = $row['sender_name'];
@@ -137,7 +137,7 @@
                 
                 case "chat":
                     echo "<table border=1><tr><th colspan=5>Private Chat Logs</th></tr>\n";
-                    echo "<tr><th width=150px>Sender</th><th width=120px>IP Address</th><th width=300px>Message</th><th width=200px>Receiver</th><th width=150px>Time Stamp</th></tr>\n";
+                    echo "<tr><th min-width=150px max-width=200px>Sender</th><th min-width=120px max-width=170px>IP Address</th><th min-width=300px max-width=350px>Message</th><th min-width=200px max-width=250px>Receiver</th><th min-width=150px max-width=200px>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
                         $username = $row['sender_name'];
