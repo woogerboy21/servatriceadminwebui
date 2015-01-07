@@ -19,7 +19,7 @@
 			<tr><td>Server Management Menu</td><td align="right">(<?php echo $playercount; ?> Active Players)</td><td align="center"><a href="availableadmins.php" onclick="window.open('availableadmins.php','popup','width=200,height=200,scrollbars=yes,resizable=yes,toolbar=no,directories=no,location=no,menubar=no,status=no,left=50,top=0'); return false">(<?php echo $modcount; ?> Active Moderators)</a></td></tr>
 			<tr>
 				<td><a href="admin_portal.php">Administration Menu</a></td>
-				<td rowspan="10" colspan="2" align="center"><?php if(!empty($banner)){ echo $banner; } ?></td>
+				<td rowspan="13" colspan="2" align="center"><?php if(!empty($banner)){ echo $banner; } ?></td>
 			</tr>
 			<tr><td><a href="viewservermessages.php">View Server Message</a></td></tr>
 			<tr><td><a href="addservermessage.php">Add Server Message</a></td></tr>
@@ -29,6 +29,9 @@
 			<tr><td><a href="changelog.html">View Servatrice Administrator Changelog</a></td></tr>
 			<tr><td><a href="viewfla.php">View Failed Log-In Attempts</a></td></tr>
 			<tr><td><a href="viewlog.php">View Chat Logs</a></td></tr>
+			<tr><td><a href="addserverroom.php">Add Server Room</a></td></tr>
+                        <tr><td><a href="deleteserverroom.php">Delete Server Room</a></td></tr>
+                        <tr><td><a href="addgametype.php">Add Game Type</a></td></tr>
 			<tr><td><a href="logout.php">Logout</a></td></tr>
 			<?php include 'admin_footer.php'; ?>
 		</table>

@@ -1069,4 +1069,96 @@
 		file_put_contents($tempfolder . "/" . $filename . ".fwrule",$ipaddress,LOCK_EX);
 		return $results;
 	}
+	
+	function add_room($id,$name,$descript,$autoj,$joinm){
+		global $configfile;
+		$dbserver = get_config_value($configfile,"dbserver");
+                $dbusername = get_config_value($configfile,"dbusername");
+                $dbpassword = get_config_value($configfile,"dbpassword");
+                $dbname = get_config_value($configfile,"dbname");
+                $dbtable = get_config_value($configfile,"dbroomtable");
+                if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+                if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+                if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
+                if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+                if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+		if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
+		if (empty($name)){ $results = "failed, room name can not be blank"; return $results; exit; }
+		if (empty($descript)){ $results = "failed, room description can not be blank"; return $results; exit; }
+		if (empty($autoj)){ $results = "failed, room auto join value can not be blank"; return $results; exit; }
+		if (empty($joinm)){ $results = "failed, room join message can not be blank"; return $results; exit; }
+		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+                if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+                $query = mysql_query("INSERT INTO " . $dbtable . " (id,name,descr,auto_join,join_message) VALUES ('" . trim(mysql_real_escape_string($id)) . "','" . trim(mysql_real_escape_string($name)) . "','" . trim(mysql_real_escape_string($descript)) . "','" . trim(mysql_real_escape_string($autoj)) . "','" . trim(mysql_real_escape_string($joinm)) . "')");
+                if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+                mysql_close($dbconnection);
+                return $results;
+	}
+
+	function add_game_type($id,$gamename){
+		global $configfile;
+                $dbserver = get_config_value($configfile,"dbserver");
+                $dbusername = get_config_value($configfile,"dbusername");
+                $dbpassword = get_config_value($configfile,"dbpassword");
+                $dbname = get_config_value($configfile,"dbname");
+                $dbtable = get_config_value($configfile,"dbgametypetable");
+                if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+                if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+                if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
+                if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+                if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+                if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
+                if (empty($gamename)){ $results = "failed, game name can not be blank"; return $results; exit; }
+                $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+                if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+		$query = mysql_query("INSERT INTO " . $dbtable . " (id_room,name) VALUES ('" . trim(mysql_real_escape_string($id)) . "','" . trim(mysql_real_escape_string($gamename)) . "')");
+		if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+                mysql_close($dbconnection);
+                return $results;
+	}
+
+	function delete_room($id){
+		global $configfile;
+                $dbserver = get_config_value($configfile,"dbserver");
+                $dbusername = get_config_value($configfile,"dbusername");
+                $dbpassword = get_config_value($configfile,"dbpassword");
+                $dbname = get_config_value($configfile,"dbname");
+                $dbtable = get_config_value($configfile,"dbroomtable");
+                if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+                if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+                if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
+                if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+                if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+                if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
+		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+                if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+                $query = mysql_query("DELETE FROM " . $dbtable . " WHERE id='" . $id . "'");
+                if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+                mysql_close($dbconnection);
+                return $results;
+	}
+
+	function delete_gametype($id,$name){
+		global $configfile;
+                $dbserver = get_config_value($configfile,"dbserver");
+                $dbusername = get_config_value($configfile,"dbusername");
+                $dbpassword = get_config_value($configfile,"dbpassword");
+                $dbname = get_config_value($configfile,"dbname");
+                $dbtable = get_config_value($configfile,"dbgametypetable");
+                if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+                if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+                if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
+                if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+                if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+                if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
+		if (empty($name)){ $results = "failed, game name can not be blank"; return $results; exit; }
+                $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+                if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+                $query = mysql_query("DELETE FROM " . $dbtable . " WHERE id_room='" . $id . "' AND name='" . $name . "'");
+                if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+                mysql_close($dbconnection);
+                return $results;
+
+
+	}
 ?>
