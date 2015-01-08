@@ -2,6 +2,8 @@
 	include '.config_commonfunctions';
 	global $configfile;
 	$enabled = get_config_value($configfile,"statsenabled");
+	$timezone = get_config_value($configfile,"timezone");
+        date_default_timezone_set($timezone);
 	$refreshtime = get_config_value($configfile,"statisticsrefreshtime");
 	if (trim(strtolower($enabled)) == "yes"){
 		$databaseserver = trim(get_config_value($configfile,'dbserver'));
