@@ -91,7 +91,7 @@
 		</tr>
 		<tr>
 			<td colspan="2" style="min-width:400px">
-				<input type="submit" name="submit" value="Get User Logs" style="width:150px"><br/>
+				<input type="submit" name="submit" value="Get User Logs" style="width:150px">
 				<input type="submit" name="submit_filter" value="Clear Filters" style="width:150px">
 			</td>
 		</tr>
