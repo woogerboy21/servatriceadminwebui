@@ -7,7 +7,7 @@
 	require '.auth_modsession';
 	require '.config_commonfunctions';
 	
-	header("Content-Type: text/html; charset=ISO-8859-1"); // Fixes some characters	
+	header("Content-Type: text/html; charset=ISO-8859-1"); // Fixes awkward characters	
 
 	if ($_REQUEST['submit_filter']) // Clear filters
 	{
@@ -42,7 +42,7 @@
 	<table border="1">
 		<tr>
 			<td style="min-width:150px"><a href="portal_servermanagement.php">Server Management Menu</a></td>
-            <td style="min-width:250px"><a href="logout.php">Logout</a></td>
+            		<td style="min-width:250px"><a href="logout.php">Logout</a></td>
 		</tr>
 		<tr>
 			<td style="min-width:150px">Find By Username</td>
