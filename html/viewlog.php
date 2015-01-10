@@ -2,12 +2,12 @@
 <head>
 	<title>Servatrice Administrator</title>
 	<meta name="author" content="Zach H (ZeldaZach)">
-	<style> td {text-align:center;} </style>
+	<style> td {text-align:center; max-width:300px;} </style>
 <?php
 	require '.auth_modsession';
 	require '.config_commonfunctions';
 	
-	header("Content-Type: text/html; charset=ISO-8859-1"); // Fixes some characters	
+	header("Content-Type: text/html; charset=ISO-8859-1"); // Fixes awkward characters	
 
 	if ($_REQUEST['submit_filter']) // Clear filters
 	{
@@ -42,7 +42,7 @@
 	<table border="1">
 		<tr>
 			<td style="min-width:150px"><a href="portal_servermanagement.php">Server Management Menu</a></td>
-            <td style="min-width:250px"><a href="logout.php">Logout</a></td>
+            		<td style="min-width:250px"><a href="logout.php">Logout</a></td>
 		</tr>
 		<tr>
 			<td style="min-width:150px">Find By Username</td>
@@ -91,8 +91,8 @@
 		</tr>
 		<tr>
 			<td colspan="2" style="min-width:400px">
-				<input type="submit" name="submit_filter" value="Clear Filters" style="width:150px">
 				<input type="submit" name="submit" value="Get User Logs" style="width:150px">
+				<input type="submit" name="submit_filter" value="Clear Filters" style="width:150px">
 			</td>
 		</tr>
 	</table>
