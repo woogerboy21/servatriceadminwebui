@@ -2,7 +2,7 @@
 <head>
 	<title>Servatrice Administrator</title>
 	<meta name="author" content="Zach H (ZeldaZach)">
-	<style> td {text-align:center; max-width:300px;} </style>
+	<style> td {text-align:center; max-width:300px; word-wrap: break-word;} </style>
 <?php
 	require '.auth_modsession';
 	require '.config_commonfunctions';

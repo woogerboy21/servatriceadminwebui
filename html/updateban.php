@@ -32,7 +32,10 @@
 			                                if (strpos(strtolower($dbtable),"fail") !== false){ $results = strtolower($dbtable); return $results; exit; }
                         			        $dbconnection = connect_to_database($dbserv,$dbuser,$dbpass,$dbname);
 			                                if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-                        			        $query = mysql_query("UPDATE " . trim($dbtable) . " SET minutes='" . trim($_POST['minutes']) . "',ip_address='" . trim($_POST['ipaddress']) . "',user_name='" . trim(mysql_real_escape_string($_POST['username'])) . "',reason='" . trim(mysql_real_escape_string($_POST['reason'])) . "',visible_reason='" . trim(mysql_real_escape_string($_POST['visiblereason'])) . "' WHERE user_name='" . trim(mysql_real_escape_string($_POST['username'])) . "' AND time_from='" . trim($_POST['starttime']) . "'");
+			                                
+			                                $minutes_by_components = ($_POST['minutes']); // Allow for math
+			                                
+                        			        $query = mysql_query("UPDATE " . trim($dbtable) . " SET minutes='" . trim($minutes_by_components) . "',ip_address='" . trim($_POST['ipaddress']) . "',user_name='" . trim(mysql_real_escape_string($_POST['username'])) . "',reason='" . trim(mysql_real_escape_string($_POST['reason'])) . "',visible_reason='" . trim(mysql_real_escape_string($_POST['visiblereason'])) . "' WHERE user_name='" . trim(mysql_real_escape_string($_POST['username'])) . "' AND time_from='" . trim($_POST['starttime']) . "'");
 							if (!query){ $results = "failed, " . mysql_error(); }
 							if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
 							mysql_close($dbconnection);
