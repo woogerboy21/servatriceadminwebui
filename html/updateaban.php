@@ -41,12 +41,12 @@
 				<td align="center"><a href="logout.php">Logout</a></td>
 			</tr>
 			<form action="updateban.php" method="post">
-				<tr><td>UserName:</td><td colspan="2"><input type="text" size="35" name="username" value="<?php echo $username; ?>" /></input></td></tr>
-				<tr><td>IP Address:</td><td colspan="2"><input type="text" size="35" name="ipaddress" value="<?php echo $ipaddress; ?>" /></td></tr>
-				<tr><td>Start Time:</td><td colspan="2"><input type="text" size="35" name="starttime" value="<?php echo $starttime; ?>" readonly /></td></tr>
-				<tr><td>Minutes:</td><td colspan="2"><input type="text"size="35" name="minutes" value="<?php echo $minutes; ?>" /></td></tr>
-				<tr><td>Reason:</td><td colspan="2"><input type="text" size="35" name="reason" value="<?php echo $reason; ?>" /></td></tr>
-				<tr><td>Visible Reason:</td><td colspan="2"><input type="text" size="35" name="visiblereason" value="<?php echo $displayreason; ?>" /></td></tr>
+				<tr><td>UserName:</td><td colspan="2"><input type="text" size="35" name="username" value="<?=$username?>" /></input></td></tr>
+				<tr><td>IP Address:</td><td colspan="2"><input type="text" size="35" name="ipaddress" value="<?=$ipaddress?>" /></td></tr>
+				<tr><td>Start Time:</td><td colspan="2"><input type="text" size="35" name="starttime" value="<?=$starttime?>" readonly /></td></tr>
+				<tr><td>Minutes:</td><td colspan="2"><input type="text" size="35" name="minutes" value="<?=$minutes?>" /></td></tr>
+				<tr><td>Reason:</td><td colspan="2"><input type="text" size="35" name="reason" value="<?=$reason?>" /></td></tr>
+				<tr><td>Visible Reason:</td><td colspan="2"><input type="text" size="35" name="visiblereason" value="<?=$displayreason?>" /></td></tr>
 				<tr><td align="center" colspan="3"><input type="submit" value="Update" /></td></tr>
 			</form>
 		</table>
