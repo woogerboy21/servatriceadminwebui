@@ -1,5 +1,15 @@
 <?php
-	$configfile = ".config";
+    $configfile = ".config";
+    date_default_timezone_set('.get_config_value($configfile,"timezone").'); // Matches up with MySQL
+
+
+    function calculate_string( $mathString ) {
+   	$mathString = trim($mathString);
+   	$mathString = ereg_replace ('[^0-9\+-\*\/\(\) ]', '', $mathString);
+   
+    	$compute = create_function("", "return (" . $mathString . ");" );
+		return 0 + $compute();
+    }
 
     function build_log_table() {
         // I don't feel like rewriting this entire thing again... so I'll just make it work here
