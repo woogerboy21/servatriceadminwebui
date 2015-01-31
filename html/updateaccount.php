@@ -8,7 +8,7 @@
                         <tr>
 				<?php
 					require '.auth_usersession';
-                                        require '.config_commonfunctions';
+					require '.config_commonfunctions';
 					global $configfile;
 					if ($_SESSION['admin'] > 0){ 
 						echo '<td align="center"><a href="portal_manageaccounts.php">Account Management Menu</a></td>';

@@ -463,74 +463,38 @@
                 return $results;
 	}
 
-	function get_user_data($username,$datatocollect){
-		global $configfile;
-                $results = "unknown";
-                $dbserver = get_config_value($configfile,"dbserver");
-                $dbusername = get_config_value($configfile,"dbusername");
-                $dbpassword = get_config_value($configfile,"dbpassword");
-                $dbname = get_config_value($configfile,"dbname");
-                $dbtable = get_config_value($configfile,"dbusertable");
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-                if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
-                if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
-                if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
-                if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-                if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($datatocollect)){ $results = "failed, user data to collect can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
-                if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-                $query = mysql_query("SELECT * FROM " . trim($dbtable) . " WHERE name='" . mysql_real_escape_string(trim($username)) . "'");
-                if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
-                $row = mysql_fetch_array($query);
-		switch (strtolower(trim($datatocollect))){
-			case 'id':
-				$results = $row['id'];
-				break;
-			case 'admin':
-				$results = $row['admin'];
-				break;
-			case 'name':
-				$results = $row['name'];
-				break;
-			case 'realname':
-				$results = $row['realname'];
-				break;
-			case 'gender':
-				$results = $row['gender'];
-				break;
-			case 'password_sha512':
-				$results = $row['password_sha512'];
-				break;
-			case 'email':
-				$results = $row['email'];
-				break;
-			case 'country':
-				$results = $row['country'];
-				break;
-			case 'avatar_bmp':
-				$results = $row['avatar_bmp'];
-				break;
-			case 'registrationdate':
-				$results = $row['registrationDate'];
-				break;
-			case 'active':
-				$results = $row['active'];
-				break;
-			case 'token':
-				$results = $row['token'];
-				break;
-			case 'adminnotes':
-				$results = $row['adminnotes'];
-				break;
-			default:
-				$results = "failed, unknown user data type to collect";
-				return $results;
-				exit;
+	function dont_allow_blank($database_value)
+	{
+		if (strlen($database_value) < 1)
+		{
+			return " ";
 		}
-		mysql_close($dbconnection);
-		return $results;
+		else
+		{
+			return $database_value;
+		}
 	}
+	
+	function get_user_data($username, $date_to_collect)
+    {
+        global $configfile;
+
+        $db_server = get_config_value($configfile,"dbserver");
+        $db_username = get_config_value($configfile,"dbusername");
+        $db_password = get_config_value($configfile,"dbpassword");
+        $db_name = get_config_value($configfile,"dbname");
+        $db_table = get_config_value($configfile,"dbusertable");        
+        $db_connection = connect_to_database($db_server,$db_username,$db_password,$db_name);
+
+        $query = mysql_query("SELECT * FROM " . trim($db_table) . " WHERE LOWER(name)='" . mysql_real_escape_string(strtolower(trim($username))) . "'") or die(mysql_error());
+		
+        $row = mysql_fetch_array($query);
+
+        $date_to_collect = strtolower(trim($date_to_collect));
+
+        mysql_close($db_connection);
+        return $row["$date_to_collect"];
+    }
 	
 	function add_user($username,$password,$email){
 		global $configfile;
