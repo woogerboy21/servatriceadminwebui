@@ -533,7 +533,7 @@
 				if ($query){
 					generate_accountverificationfile($username);
 					// $results = "Successfully created user account.<br>An email verification will be sent shortly.<br>";
-					$results = "<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account. Activation emails can take up to 10 minutes to receive so please be patient.</center>";
+					$results = "<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account. Activation emails can take up to 10 minutes to receive so please be patient.<br>If your activation email does not arrive please contact a moderator and ask to activate your account or use our contact us link on our main site.</center>";
 				} else {
 					$results = "failed, " . mysql_error();
 				}
