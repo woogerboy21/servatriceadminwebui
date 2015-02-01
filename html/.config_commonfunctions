@@ -247,7 +247,10 @@
 			$line = fgets($file_handle);
 			if (strpos($line,$configvalue) !== false){
 				$lineparts = explode("=",$line);
-				if (sizeof($lineparts) < 3 && sizeof($lineparts) > 1){ $results = $lineparts[1];}
+				if ($lineparts[0] == $configvalue){
+					if (sizeof($lineparts) < 3 && sizeof($lineparts) > 1){ $results = $lineparts[1];}
+					break;
+				}
 			}
 		}
 		fclose($file_handle);
