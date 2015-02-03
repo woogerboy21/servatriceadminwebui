@@ -14,15 +14,16 @@
     function build_log_table() {
         // I don't feel like rewriting this entire thing again... so I'll just make it work here
 		global $_REQUEST, $configfile;
+		
+		$use_archive_server = get_config_value($configfile, "use_archive_server");
 
-		if (get_config_value($configfile, "use_archive_server"))
+		if ($use_archive_server)
 		{
 			$db_connections = array(connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname")), connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname")));
 		}
 		else
 		{
 			$db_connections = array(connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname")));
-			$archive = false;
 		}
 
 
@@ -104,7 +105,7 @@
             $target_type_q = (strlen($game_id_q) == 0) ? "AND `target_type` = '{$get_logs_from[$i]}'" : ""; // Builds target query and avoids issues
 
 			$query = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_connections[0]) or die(mysql_error());
-			$query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_connections[1]) or die(mysql_error());
+			if ($use_archive_server) $query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_connections[1]) or die(mysql_error());
 			
             switch ($get_logs_from[$i])
             {
@@ -124,7 +125,7 @@
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     
-                    if ($archive)
+                    if ($use_archive_server)
 	                {   
 	                	while ($row = mysql_fetch_array($query_archive))
 	                    {
@@ -164,7 +165,7 @@
                     
 						echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
-                    if ($archive)
+                    if ($use_archive_server)
                     {
 	                    while ($row = mysql_fetch_array($query_archive))
 	                    {
@@ -207,7 +208,7 @@
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     
-                    if ($archive)
+                    if ($use_archive_server)
                     {
 	                    while ($row = mysql_fetch_array($query_archive))
 	                    {
