@@ -13,37 +13,46 @@
 
     function build_log_table() {
         // I don't feel like rewriting this entire thing again... so I'll just make it work here
-        global $_REQUEST, $configfile;
+		global $_REQUEST, $configfile;
 
-        $db_connections = array(connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname")), connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname")));
+		if (get_config_value($configfile, "use_archive_server"))
+		{
+			$db_connections = array(connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname")), connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname")));
+		}
+		else
+		{
+			$db_connections = array(connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname")));
+			$archive = false;
+		}
 
-        if (strlen($_REQUEST['username']) > 0) // Check if a username is given
-        {
-            $username = strtolower(mysql_real_escape_string($_REQUEST['username']));
-        }
 
-        if (strlen($_REQUEST['ip_address']) > 0) // Check if IP is given
-        {
-            $ip_to_find = mysql_real_escape_string($_REQUEST['ip_address']);
-        }
+		if (strlen($_REQUEST['username']) > 0) // Check if a username is given
+		{
+			$username = strtolower(mysql_real_escape_string($_REQUEST['username']));
+		}
+
+		if (strlen($_REQUEST['ip_address']) > 0) // Check if IP is given
+		{
+			$ip_to_find = mysql_real_escape_string($_REQUEST['ip_address']);
+		}
         
-        if (intval($_REQUEST['game_id'] > 0)) // Check if Game ID is given
-        {
-            $game_id = intval(mysql_real_escape_string($_REQUEST['game_id']));
-        }
+		if (intval($_REQUEST['game_id'] > 0)) // Check if Game ID is given
+		{
+			$game_id = intval(mysql_real_escape_string($_REQUEST['game_id']));
+		}
         
-        if (strlen($_REQUEST['game_name']) > 0) // Check if Game Name is given
-        {
-            $game_name = mysql_real_escape_string(strtolower($_REQUEST['game_name']));
-        }
+		if (strlen($_REQUEST['game_name']) > 0) // Check if Game Name is given
+		{
+			$game_name = mysql_real_escape_string(strtolower($_REQUEST['game_name']));
+		}
         
-        if ($_REQUEST['from_date']) // Check if date range is given
+		if ($_REQUEST['from_date']) // Check if date range is given
         {
-            $total_time = mysql_real_escape_string($_REQUEST['from_date']);
-        }
+			$total_time = mysql_real_escape_string($_REQUEST['from_date']);
+		}
         
-        if (count($_REQUEST['type_of_chat']) > 0) // Check if any specific locations are given
-        {
+		if (count($_REQUEST['type_of_chat']) > 0) // Check if any specific locations are given
+		{
             $get_logs_from = array();
             for ($i = 0; $i < 3; $i++)
             {
@@ -114,18 +123,22 @@
 
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
                     }
-                    while ($row = mysql_fetch_array($query_archive))
-                    {
-                        $username = $row['sender_name'];
-                        $name_with_link = "<a href='?username=$username'>$username</a>";
                     
-                        $ip = $row['sender_ip'];
-						$ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+                    if ($archive)
+	                {   
+	                	while ($row = mysql_fetch_array($query_archive))
+	                    {
+	                        $username = $row['sender_name'];
+	                        $name_with_link = "<a href='?username=$username'>$username</a>";
+	                    
+	                        $ip = $row['sender_ip'];
+							$ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
 
-						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+							$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
 
-                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
-                    }
+	                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
+	                    }
+	                }
 					
                     echo "</table><br/>\n";
                 break;
@@ -151,24 +164,27 @@
                     
 						echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
-                    while ($row = mysql_fetch_array($query_archive))
+                    if ($archive)
                     {
-                        $username = $row['sender_name'];
-                        $name_with_link = "<a href='?username=$username'>$username</a>";
-                    
-                        $ip = $row['sender_ip'];
-                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
-                    
-                        $room_id = $row['target_id'];
-                        $room_id_with_link = "<a href='?game_id=$room_id'>$room_id</a>";
-                    
-                        $game_name = $row['target_name'];
-                        $game_name_with_link = "<a href='?game_name=$game_name'>$game_name</a>";
+	                    while ($row = mysql_fetch_array($query_archive))
+	                    {
+	                        $username = $row['sender_name'];
+	                        $name_with_link = "<a href='?username=$username'>$username</a>";
+	                    
+	                        $ip = $row['sender_ip'];
+	                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+	                    
+	                        $room_id = $row['target_id'];
+	                        $room_id_with_link = "<a href='?game_id=$room_id'>$room_id</a>";
+	                    
+	                        $game_name = $row['target_name'];
+	                        $game_name_with_link = "<a href='?game_name=$game_name'>$game_name</a>";
 
-						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
-                    
-						echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
-                    }
+							$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+	                    
+							echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
+	                    }
+	                }
                     echo "</table><br/>\n";
                 break;
             
@@ -190,21 +206,25 @@
                 
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
-                    while ($row = mysql_fetch_array($query_archive))
-                    {
-                        $username = $row['sender_name'];
-                        $name_with_link = "<a href='?username=$username'>$username</a>";
-                
-                        $ip = $row['sender_ip'];
-                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
                     
-                        $receiver = $row['target_name'];
-                        $receiver_with_link = "<a href='?username=$receiver'>$receiver</a>";
+                    if ($archive)
+                    {
+	                    while ($row = mysql_fetch_array($query_archive))
+	                    {
+	                        $username = $row['sender_name'];
+	                        $name_with_link = "<a href='?username=$username'>$username</a>";
+	                
+	                        $ip = $row['sender_ip'];
+	                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+	                    
+	                        $receiver = $row['target_name'];
+	                        $receiver_with_link = "<a href='?username=$receiver'>$receiver</a>";
 
-						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
-                
-                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
-                    }
+							$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+	                
+	                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
+	                    }
+	                }
                     echo "</table><br/>\n";
                 break;
 			}
