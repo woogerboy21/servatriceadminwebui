@@ -15,7 +15,8 @@
         // I don't feel like rewriting this entire thing again... so I'll just make it work here
 		global $_REQUEST, $configfile;
 		
-		$use_archive_server = get_config_value($configfile, "use_archive_server");
+		$use_archive_server = (get_config_value($configfile, "use_archive_server") === true);
+		echo "<p>$use_archive_server</p>";
 
 		if ($use_archive_server)
 		{
@@ -1202,4 +1203,3 @@
 
 	}
 ?>
-
