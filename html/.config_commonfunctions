@@ -15,18 +15,14 @@
         // I don't feel like rewriting this entire thing again... so I'll just make it work here
 		global $_REQUEST, $configfile;
 		
-		$use_archive_server = (get_config_value($configfile, "use_archive_server") === true);
-		echo "<p>$use_archive_server</p>";
+		$use_archive_server = (get_config_value($configfile, "use_archive_server") === 'true');
+
+		$db_initial_connection = connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname"));
 
 		if ($use_archive_server)
 		{
-			$db_connections = array(connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname")), connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname")));
+			$db_archive_connection = connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname"), true);
 		}
-		else
-		{
-			$db_connections = array(connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname")));
-		}
-
 
 		if (strlen($_REQUEST['username']) > 0) // Check if a username is given
 		{
@@ -105,8 +101,8 @@
         {
             $target_type_q = (strlen($game_id_q) == 0) ? "AND `target_type` = '{$get_logs_from[$i]}'" : ""; // Builds target query and avoids issues
 
-			$query = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_connections[0]) or die(mysql_error());
-			if ($use_archive_server) $query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_connections[1]) or die(mysql_error());
+			$query = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_initial_connection) or die(mysql_error());
+			if ($use_archive_server) $query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_archive_connection) or die(mysql_error());
 			
             switch ($get_logs_from[$i])
             {
@@ -278,16 +274,19 @@
                 return $results;
 	}
 
-	function connect_to_database($dbserver,$dbuser,$dbpass,$dbname){
-       	        $results = 'unknown';
-               	if ($dbserver == ''){ $results = 'failed, database server name can not be blank'; return $results; exit; }
-       	        if ($dbuser == ''){ $results = 'failed, database user name can not be blank'; return $results; exit; }
-               	if ($dbname == ''){ $results = 'failed, database user password can not be blank'; return $results; exit; }
-		$connection = mysql_connect(trim($dbserver),trim($dbuser),trim($dbpass));
-		if (!$connection){ $results = "failed, " . mysql_error(); return results; exit; }
-       	        $database = mysql_select_db(trim($dbname),$connection);
-                if ($database){ return $connection; exit; }
-       	        if (!$database){ $results = "failed, " . mysql_error(); return $results; exit; }
+	function connect_to_database($dbserver,$dbuser,$dbpass,$dbname, $extra = false)
+	{
+		if ($dbserver == '' || $dbuser == '' || $dbname == ''){ return 'failed, database server, name, and user can not be blank';}
+
+		if ($extra)
+			$connection = mysql_connect(trim($dbserver),trim($dbuser),trim($dbpass), true) or die(mysql_error());
+		else
+			$connection = mysql_connect(trim($dbserver),trim($dbuser),trim($dbpass)) or die(mysql_error());
+		
+		
+		$database = mysql_select_db(trim($dbname), $connection) or die(mysql_error());
+
+		return $connection;
        	}
 
 	function crypt_password($password, $salt = ''){
