@@ -600,7 +600,7 @@
 				if ($query){
 					generate_accountverificationfile($username);
 					// $results = "Successfully created user account.<br>An email verification will be sent shortly.<br>";
-					$results = "<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account. Activation emails can take up to 10 minutes to receive so please be patient.<br>If your activation email does not arrive please contact a moderator and ask to activate your account or use our contact us link on our main site.<br><br>If you do not see a link in your email, please view source (or show original) of the email.<br>Chances are your email client/provider is incorrectly identifying the email as a phishing email and hiding the link for security reasons.<br><b>GMAIL DOES THIS!</b><br>To view source using gmail select the following:<br><br><img src='showoriginal.jpg'></img></center>";
+					$results = '<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account. Activation emails can take up to 10 minutes to receive so please be patient.<br>If your activation email does not arrive please contact a moderator and ask to activate your account or use our contact us link on our main site.<br><br>If you do not see a link in your email, please view source (or show original) of the email.<br>Chances are your email client/provider is incorrectly identifying the email as a phishing email and hiding the link for security reasons.<br><b>ALL THE MAJOR EMAIL PROVIDERS DO THIS! (GMAIL,YAHOO,AOL,HOTMAIL)</b><br>To view source using one of those four mentioned try the following:<br><br><a href="http://www.woogerworks.com/index.php/component/content/article?id=105">How to view email sources for yahoo,gmail,hotmail, and aol mail.</a></center>';
 				} else {
 					$results = "failed, " . mysql_error();
 				}
@@ -976,8 +976,12 @@
 		file_put_contents($tempfolder . "/" . $filename . ".mail","To: " . $usersemailaddress . "\n",LOCK_EX);
 		file_put_contents($tempfolder . "/" . $filename . ".mail","From: do-not-reply@woogerworks.com\n",FILE_APPEND);
 		file_put_contents($tempfolder . "/" . $filename . ".mail","Subject: Cockatrice Account Verification\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to activate your cockatrice user account: http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".mail","(activation link will only be available till midnight EST time zone)\n",FILE_APPEND);	
+		file_put_contents($tempfolder . "/" . $filename . ".mail","\n",FILE_APPEND);
+		file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to activate your cockatrice user account:\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","(activation link will only be available till midnight EST time zone)\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","Remember, if you do not see an activation link please check your phishing filter settings.\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","For more information on how to for the more major email providers see our main site.\n",FILE_APPEND);
 	}
 
 	function generateRandomString($length = 10) {
