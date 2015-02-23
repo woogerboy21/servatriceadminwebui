@@ -1072,7 +1072,9 @@
 		file_put_contents($tempfolder . "/" . $filename . ".mail","To: " . $usersemailaddress . "\n",LOCK_EX);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","From: do-not-reply@woogerworks.com\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","Subject: Cockatrice Account Recovery\n",FILE_APPEND);
-                file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to reset your cockatrice user account password: http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to reset your cockatrice user account password:\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","(activation link will only be available till midnight EST time zone)\n",FILE_APPEND);
 		return $results;
 	}
