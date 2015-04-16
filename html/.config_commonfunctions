@@ -1031,7 +1031,7 @@
         file_put_contents($tempfolder . "/" . $filename . ".mail","Subject: Cockatrice Account Verification\n",FILE_APPEND);
         file_put_contents($tempfolder . "/" . $filename . ".mail","\n",FILE_APPEND);
         file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to activate your cockatrice user account:\n",FILE_APPEND);
-                file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com/registration/" . $filename . ".php\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","(activation link will only be available till midnight EST time zone)\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","Remember, if you do not see an activation link please check your phishing filter settings.\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","For more information on how to for the more major email providers see our main site.\n",FILE_APPEND);
@@ -1127,7 +1127,7 @@
                 file_put_contents($tempfolder . "/" . $filename . ".mail","Subject: Cockatrice Account Recovery\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to reset your cockatrice user account password:\n",FILE_APPEND);
-                file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
+                file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com/registration/" . $filename . ".php\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","(activation link will only be available till midnight EST time zone)\n",FILE_APPEND);
         return $results;
     }
