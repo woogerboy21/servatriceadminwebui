@@ -1,9 +1,37 @@
 <?php
     $configfile = ".config";
+    $saved_user_id_change_file = "user_changed.txt";
     date_default_timezone_set('.get_config_value($configfile,"timezone").'); // Matches up with MySQL
 
-    function change_username($old_user, $new_user, $password) {
-        global $configfile;
+
+    function already_changed_name($configfile, $id_to_find)
+    {
+        $file_handle = file_get_contents($configfile) or die("Error: Username update failed; Contact support [Error #2]");
+        $all_ids = explode("\n", $file_handle);
+        
+        if (in_array($id_to_find, $all_ids))
+            return true;
+        
+        return false;
+    }
+    
+    function write_changed_name($configfile, $id_to_add)
+    {
+        $file_handle = fopen($configfile, "a") or die("ERROR IN FOPEN A for $configfile");
+
+        if (fwrite($file_handle, "$id_to_add\n"))
+        {
+            fclose($file_handle);
+            return true;
+        }
+        
+        fclose($file_handle);
+        return false;
+    }
+    
+    function change_username($old_user, $new_user, $password)
+    {
+        global $configfile, $saved_user_id_change_file;
         $db_initial_connection = connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname"));
        
         $user_table = get_config_value($configfile, "dbusertable");
@@ -12,37 +40,55 @@
         $old = mysql_real_escape_string($old_user);
         $new = mysql_real_escape_string($new_user);
         
-        $pass_q = mysql_fetch_array(mysql_query("SELECT `password_sha512` FROM `$user_table` WHERE name = '$old' LIMIT 0,1"));     
-        $pass_encrypt = crypt_password($password, trim(substr($pass_q[0], 0, 16)));
+        $info_q = mysql_fetch_array(mysql_query("SELECT `password_sha512`,`admin`,`id` FROM `$user_table` WHERE name = '$old' LIMIT 0,1"));     
+        $pass_encrypt = crypt_password($password, trim(substr($info_q[0], 0, 16)));
 
         $is_banned = mysql_num_rows(mysql_query("SELECT `reason` FROM `$ban_table` WHERE `user_name` = '$old' AND DATE_ADD(`time_from`, INTERVAL `minutes` MINUTE) > NOW() LIMIT 0,1"));
         $is_valid_user = mysql_num_rows(mysql_query("SELECT `id` FROM `$user_table` WHERE name = '$old' AND `password_sha512` = '$pass_encrypt' LIMIT 0,1"));
 
-        if ($is_valid_user)
+        if ($is_valid_user) // Valid Login
         {
-            if ($is_banned)
+            if ($is_banned) // Banned Account
             {
                 return "Error: You cannot change the username of a banned account";
             }
-            else if (!preg_match("/^[a-zA-Z0-9_\-]+$/", $new))
+            else if (!preg_match("/^[a-zA-Z0-9_\\.-]+$/", $new)) // New Name Has Bad Characters
             {
-                return "Error: You may only use A-Z, a-z, 0-9, _, and - in your new username";
+                return "Error: You may only use A-Z, a-z, 0-9, _, -, and . in your new username";
             }
-			else if (strlen($new) > 20)
+			else if (preg_match('/^Player_\d+$/', $new)) // New Name Starts "Player_"
 			{
-				return "Error: You may only use up to 20 characters in your new username";
+				return "Error: You cannot start your new username with 'Player_'";
 			}
-            
-            $username_is_taken = mysql_num_rows(mysql_query("SELECT `id` FROM `$user_table` WHERE name = '$new' LIMIT 0,1"));
-            
-            if (!$username_is_taken)
+			else if (preg_match("/^[a-zA-Z0-9_\\.-]+$/", $old)) // Old Name Is Fine Already
+			{
+				return "Error: You may only change your username if your name was invalid";
+			}
+            else if ($info_q[1] > 0) // Moderator
             {
-                if (mysql_query("UPDATE `$ban_table` SET `user_name` = '$new' WHERE `user_name` = '$old'") && update_user_table($old, 'name', $new))
+                return "Error: Moderators may not change their username without approval";
+            }
+            else if (strlen($new) > 30) // New Name Over 30 Characters
+            {
+                return "Error: You may only use up to 30 characters in your new username";
+            }
+            else if (already_changed_name($saved_user_id_change_file, $info_q[2])) // Already Changed Username Once
+            {
+                return "Error: You may only change your username once";
+            }
+            
+            $username_is_taken = mysql_num_rows(mysql_query("SELECT `id` FROM `$user_table` WHERE name = '$new' AND name != '$old' LIMIT 0,1"));
+            
+            if (!$username_is_taken) // New Username Is Not Taken
+            {
+                if (mysql_query("UPDATE `$ban_table` SET `user_name` = '$new' WHERE `user_name` = '$old'")
+                    && update_user_table($old, 'name', $new)
+                    && write_changed_name($saved_user_id_change_file, $info_q[2]))
                 {
                     return "Username updated successfully<br/>\"$old\" &rarr; \"$new\"";
                 }   
 
-                return "Error: Username update failed; Contact support";
+                return "Error: Username update failed; Contact support [Error #1]";
             }
             else
             {
@@ -57,11 +103,12 @@
     }
     
     function calculate_string($mathString) {
-    $mathString = trim($mathString);
-    $mathString = ereg_replace ('[^0-9\+-\*\/\(\) ]', '', $mathString);
+        $mathString = trim($mathString);
+        $mathString = ereg_replace ('[^0-9\+-\*\/\(\) ]', '', $mathString);
    
         $compute = create_function("", "return (" . $mathString . ");" );
         return 0 + $compute();
+
     }
 
     function build_log_table() {
