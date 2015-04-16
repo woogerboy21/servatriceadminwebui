@@ -2,55 +2,108 @@
     $configfile = ".config";
     date_default_timezone_set('.get_config_value($configfile,"timezone").'); // Matches up with MySQL
 
+    function change_username($old_user, $new_user, $password) {
+        global $configfile;
+        $db_initial_connection = connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname"));
+       
+        $user_table = get_config_value($configfile, "dbusertable");
+        $ban_table = get_config_value($configfile, "dbbantable");
 
-    function calculate_string( $mathString ) {
-   	$mathString = trim($mathString);
-   	$mathString = ereg_replace ('[^0-9\+-\*\/\(\) ]', '', $mathString);
+        $old = mysql_real_escape_string($old_user);
+        $new = mysql_real_escape_string($new_user);
+        
+        $pass_q = mysql_fetch_array(mysql_query("SELECT `password_sha512` FROM `$user_table` WHERE name = '$old' LIMIT 0,1"));     
+        $pass_encrypt = crypt_password($password, trim(substr($pass_q[0], 0, 16)));
+
+        $is_banned = mysql_num_rows(mysql_query("SELECT `reason` FROM `$ban_table` WHERE `user_name` = '$old' AND DATE_ADD(`time_from`, INTERVAL `minutes` MINUTE) > NOW() LIMIT 0,1"));
+        $is_valid_user = mysql_num_rows(mysql_query("SELECT `id` FROM `$user_table` WHERE name = '$old' AND `password_sha512` = '$pass_encrypt' LIMIT 0,1"));
+
+        if ($is_valid_user)
+        {
+            if ($is_banned)
+            {
+                return "Error: You cannot change the username of a banned account";
+            }
+            else if (!preg_match("/^[a-zA-Z0-9_\-]+$/", $new))
+            {
+                return "Error: You may only use A-Z, a-z, 0-9, _, and - in your new username";
+            }
+			else if (strlen($new) > 20)
+			{
+				return "Error: You may only use up to 20 characters in your new username";
+			}
+            
+            $username_is_taken = mysql_num_rows(mysql_query("SELECT `id` FROM `$user_table` WHERE name = '$new' LIMIT 0,1"));
+            
+            if (!$username_is_taken)
+            {
+                if (mysql_query("UPDATE `$ban_table` SET `user_name` = '$new' WHERE `user_name` = '$old'") && update_user_table($old, 'name', $new))
+                {
+                    return "Username updated successfully<br/>\"$old\" &rarr; \"$new\"";
+                }   
+
+                return "Error: Username update failed; Contact support";
+            }
+            else
+            {
+                return "Error: Username \"$new\" taken already";
+            }
+        }
+        else
+        {
+            return "Error: Invalid Username/Password combination";
+        }    
+
+    }
+    
+    function calculate_string($mathString) {
+    $mathString = trim($mathString);
+    $mathString = ereg_replace ('[^0-9\+-\*\/\(\) ]', '', $mathString);
    
-    	$compute = create_function("", "return (" . $mathString . ");" );
-		return 0 + $compute();
+        $compute = create_function("", "return (" . $mathString . ");" );
+        return 0 + $compute();
     }
 
     function build_log_table() {
         // I don't feel like rewriting this entire thing again... so I'll just make it work here
-		global $_REQUEST, $configfile;
-		
-		$use_archive_server = (get_config_value($configfile, "use_archive_server") === 'true');
-
-		$db_initial_connection = connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname"));
-
-		if ($use_archive_server)
-		{
-			$db_archive_connection = connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname"), true);
-		}
-
-		if (strlen($_REQUEST['username']) > 0) // Check if a username is given
-		{
-			$username = strtolower(mysql_real_escape_string($_REQUEST['username']));
-		}
-
-		if (strlen($_REQUEST['ip_address']) > 0) // Check if IP is given
-		{
-			$ip_to_find = mysql_real_escape_string($_REQUEST['ip_address']);
-		}
+        global $_REQUEST, $configfile;
         
-		if (intval($_REQUEST['game_id'] > 0)) // Check if Game ID is given
-		{
-			$game_id = intval(mysql_real_escape_string($_REQUEST['game_id']));
-		}
-        
-		if (strlen($_REQUEST['game_name']) > 0) // Check if Game Name is given
-		{
-			$game_name = mysql_real_escape_string(strtolower($_REQUEST['game_name']));
-		}
-        
-		if ($_REQUEST['from_date']) // Check if date range is given
+        $use_archive_server = (get_config_value($configfile, "use_archive_server") === 'true');
+
+        $db_initial_connection = connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname"));
+
+        if ($use_archive_server)
         {
-			$total_time = mysql_real_escape_string($_REQUEST['from_date']);
-		}
+            $db_archive_connection = connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname"), true);
+        }
+
+        if (strlen($_REQUEST['username']) > 0) // Check if a username is given
+        {
+            $username = strtolower(mysql_real_escape_string($_REQUEST['username']));
+        }
+
+        if (strlen($_REQUEST['ip_address']) > 0) // Check if IP is given
+        {
+            $ip_to_find = mysql_real_escape_string($_REQUEST['ip_address']);
+        }
         
-		if (count($_REQUEST['type_of_chat']) > 0) // Check if any specific locations are given
-		{
+        if (intval($_REQUEST['game_id'] > 0)) // Check if Game ID is given
+        {
+            $game_id = intval(mysql_real_escape_string($_REQUEST['game_id']));
+        }
+        
+        if (strlen($_REQUEST['game_name']) > 0) // Check if Game Name is given
+        {
+            $game_name = mysql_real_escape_string(strtolower($_REQUEST['game_name']));
+        }
+        
+        if ($_REQUEST['from_date']) // Check if date range is given
+        {
+            $total_time = mysql_real_escape_string($_REQUEST['from_date']);
+        }
+        
+        if (count($_REQUEST['type_of_chat']) > 0) // Check if any specific locations are given
+        {
             $get_logs_from = array();
             for ($i = 0; $i < 3; $i++)
             {
@@ -101,43 +154,43 @@
         {
             $target_type_q = (strlen($game_id_q) == 0) ? "AND `target_type` = '{$get_logs_from[$i]}'" : ""; // Builds target query and avoids issues
 
-			$query = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_initial_connection) or die(mysql_error());
-			if ($use_archive_server) $query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_archive_connection) or die(mysql_error());
-			
+            $query = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_initial_connection) or die(mysql_error());
+            if ($use_archive_server) $query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_archive_connection) or die(mysql_error());
+            
             switch ($get_logs_from[$i])
             {
                 case "room":
-					echo "<table border=1><tr><th colspan=4>Main Chat Room Logs</th></tr>\n";
-					echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:150px'>Time Stamp</th></tr>\n";
+                    echo "<table border=1><tr><th colspan=4>Main Chat Room Logs</th></tr>\n";
+                    echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:150px'>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
                         $username = $row['sender_name'];
                         $name_with_link = "<a href='?username=$username'>$username</a>";
                     
                         $ip = $row['sender_ip'];
-						$ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
 
-						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+                        $log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
 
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     
                     if ($use_archive_server)
-	                {   
-	                	while ($row = mysql_fetch_array($query_archive))
-	                    {
-	                        $username = $row['sender_name'];
-	                        $name_with_link = "<a href='?username=$username'>$username</a>";
-	                    
-	                        $ip = $row['sender_ip'];
-							$ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+                    {   
+                        while ($row = mysql_fetch_array($query_archive))
+                        {
+                            $username = $row['sender_name'];
+                            $name_with_link = "<a href='?username=$username'>$username</a>";
+                        
+                            $ip = $row['sender_ip'];
+                            $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
 
-							$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+                            $log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
 
-	                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
-	                    }
-	                }
-					
+                            echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>{$row['log_time']}</td></tr>\n";
+                        }
+                    }
+                    
                     echo "</table><br/>\n";
                 break;
             
@@ -158,31 +211,31 @@
                         $game_name = $row['target_name'];
                         $game_name_with_link = "<a href='?game_name=$game_name'>$game_name</a>";
 
-						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+                        $log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
                     
-						echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
+                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     if ($use_archive_server)
                     {
-	                    while ($row = mysql_fetch_array($query_archive))
-	                    {
-	                        $username = $row['sender_name'];
-	                        $name_with_link = "<a href='?username=$username'>$username</a>";
-	                    
-	                        $ip = $row['sender_ip'];
-	                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
-	                    
-	                        $room_id = $row['target_id'];
-	                        $room_id_with_link = "<a href='?game_id=$room_id'>$room_id</a>";
-	                    
-	                        $game_name = $row['target_name'];
-	                        $game_name_with_link = "<a href='?game_name=$game_name'>$game_name</a>";
+                        while ($row = mysql_fetch_array($query_archive))
+                        {
+                            $username = $row['sender_name'];
+                            $name_with_link = "<a href='?username=$username'>$username</a>";
+                        
+                            $ip = $row['sender_ip'];
+                            $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+                        
+                            $room_id = $row['target_id'];
+                            $room_id_with_link = "<a href='?game_id=$room_id'>$room_id</a>";
+                        
+                            $game_name = $row['target_name'];
+                            $game_name_with_link = "<a href='?game_name=$game_name'>$game_name</a>";
 
-							$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
-	                    
-							echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
-	                    }
-	                }
+                            $log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+                        
+                            echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$room_id_with_link</td><td>$game_name_with_link</td><td>{$row['log_time']}</td></tr>\n";
+                        }
+                    }
                     echo "</table><br/>\n";
                 break;
             
@@ -200,62 +253,62 @@
                         $receiver = $row['target_name'];
                         $receiver_with_link = "<a href='?username=$receiver'>$receiver</a>";
 
-						$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+                        $log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
                 
                         echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
                     }
                     
                     if ($use_archive_server)
                     {
-	                    while ($row = mysql_fetch_array($query_archive))
-	                    {
-	                        $username = $row['sender_name'];
-	                        $name_with_link = "<a href='?username=$username'>$username</a>";
-	                
-	                        $ip = $row['sender_ip'];
-	                        $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
-	                    
-	                        $receiver = $row['target_name'];
-	                        $receiver_with_link = "<a href='?username=$receiver'>$receiver</a>";
+                        while ($row = mysql_fetch_array($query_archive))
+                        {
+                            $username = $row['sender_name'];
+                            $name_with_link = "<a href='?username=$username'>$username</a>";
+                    
+                            $ip = $row['sender_ip'];
+                            $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
+                        
+                            $receiver = $row['target_name'];
+                            $receiver_with_link = "<a href='?username=$receiver'>$receiver</a>";
 
-							$log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
-	                
-	                        echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
-	                    }
-	                }
+                            $log_message = htmlspecialchars($row['log_message'], ENT_COMPAT | ENT_XHTML , 'ISO-8859-1');
+                    
+                            echo "<tr><td>$name_with_link</td><td>$ip_with_link</td><td>$log_message</td><td>$receiver_with_link</td><td>{$row['log_time']}</td></tr>\n";
+                        }
+                    }
                     echo "</table><br/>\n";
                 break;
-			}
-		}
+            }
+        }
         mysql_close($dbconnection);
     }
-	function insert_avatar($image,$username){
-		$results = "unknown";
-		$configfile = ".config";
-		$dbserver = get_config_value($configfile,"dbserver");
+    function insert_avatar($image,$username){
+        $results = "unknown";
+        $configfile = ".config";
+        $dbserver = get_config_value($configfile,"dbserver");
         $dbusername = get_config_value($configfile,"dbusername");
         $dbpassword = get_config_value($configfile,"dbpassword");
         $dbname = get_config_value($configfile,"dbname");
         $dbtable = get_config_value($configfile,"dbusertable");
-		
-		//read in image file
-		$fp = fopen($image, 'r');
-	  	$data = fread($fp, filesize($image));
-  		$data = addslashes($data);
-  		fclose($fp);
-		
-		//establish db connection
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        
+        //read in image file
+        $fp = fopen($image, 'r');
+        $data = fread($fp, filesize($image));
+        $data = addslashes($data);
+        fclose($fp);
+        
+        //establish db connection
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		//insert image into database
-		$query = mysql_query("UPDATE " . $dbtable . " SET avatar_bmp='" . $data . "' WHERE name='" . mysql_real_escape_string($username) . "'");
-		$results = $query;
+        //insert image into database
+        $query = mysql_query("UPDATE " . $dbtable . " SET avatar_bmp='" . $data . "' WHERE name='" . mysql_real_escape_string($username) . "'");
+        $results = $query;
                 mysql_close($dbconnection);
-                return $results;	
-	}
+                return $results;    
+    }
 
-	function delete_avatar($username){
-		$results = "unknown";
+    function delete_avatar($username){
+        $results = "unknown";
                 $configfile = ".config";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
@@ -263,7 +316,7 @@
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbusertable");
 
-		//establish db connection
+        //establish db connection
                 $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
 
@@ -272,58 +325,58 @@
                 $results = $query;
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function connect_to_database($dbserver,$dbuser,$dbpass,$dbname, $extra = false)
-	{
-		if ($dbserver == '' || $dbuser == '' || $dbname == ''){ return 'failed, database server, name, and user can not be blank';}
+    function connect_to_database($dbserver,$dbuser,$dbpass,$dbname, $extra = false)
+    {
+        if ($dbserver == '' || $dbuser == '' || $dbname == ''){ return 'failed, database server, name, and user can not be blank';}
 
-		if ($extra)
-			$connection = mysql_connect(trim($dbserver),trim($dbuser),trim($dbpass), true) or die(mysql_error());
-		else
-			$connection = mysql_connect(trim($dbserver),trim($dbuser),trim($dbpass)) or die(mysql_error());
-		
-		
-		$database = mysql_select_db(trim($dbname), $connection) or die(mysql_error());
+        if ($extra)
+            $connection = mysql_connect(trim($dbserver),trim($dbuser),trim($dbpass), true) or die(mysql_error());
+        else
+            $connection = mysql_connect(trim($dbserver),trim($dbuser),trim($dbpass)) or die(mysql_error());
+        
+        
+        $database = mysql_select_db(trim($dbname), $connection) or die(mysql_error());
 
-		return $connection;
-       	}
-
-	function crypt_password($password, $salt = ''){
-                if ($salt == '') {
-       	                $saltChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-                        for ($i = 0; $i < 16; ++$i)
-       	                $salt .= $saltChars[rand(0, strlen($saltChars) - 1)];
-                }
-       	        $key = $salt . $password;
-                for ($i = 0; $i < 1000; ++$i)
-               	$key = hash('sha512', $key, true);
-       	        return $salt . base64_encode($key);
+        return $connection;
         }
 
-	function get_config_value($configfile,$configvalue){
-		$results = "unknown";
-		if (empty($configfile)){ $results = "failed, config file name can not be blank"; return $results; exit;}
-		if (empty($configvalue)){ $results = "failed, config file value can not be blank"; return $results; exit;}
-		if (!file_exists($configfile)){ $results = "failed, config file does not exist"; return $results; exit;}
-		$file_handle = fopen($configfile, "r");
-		while (!feof($file_handle)) {
-			$line = fgets($file_handle);
-			if (strpos($line,$configvalue) !== false){
-				$lineparts = explode("=",$line);
-				if ($lineparts[0] == $configvalue){
-					if (sizeof($lineparts) < 3 && sizeof($lineparts) > 1){ $results = $lineparts[1];}
-					break;
-				}
-			}
-		}
-		fclose($file_handle);
-		return trim($results);
-	}
-	
-	function close_complaint($moderator,$id,$verdict){
+    function crypt_password($password, $salt = ''){
+                if ($salt == '') {
+                        $saltChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+                        for ($i = 0; $i < 16; ++$i)
+                        $salt .= $saltChars[rand(0, strlen($saltChars) - 1)];
+                }
+                $key = $salt . $password;
+                for ($i = 0; $i < 1000; ++$i)
+                $key = hash('sha512', $key, true);
+                return $salt . base64_encode($key);
+        }
+
+    function get_config_value($configfile,$configvalue){
+        $results = "unknown";
+        if (empty($configfile)){ $results = "failed, config file name can not be blank"; return $results; exit;}
+        if (empty($configvalue)){ $results = "failed, config file value can not be blank"; return $results; exit;}
+        if (!file_exists($configfile)){ $results = "failed, config file does not exist"; return $results; exit;}
+        $file_handle = fopen($configfile, "r");
+        while (!feof($file_handle)) {
+            $line = fgets($file_handle);
+            if (strpos($line,$configvalue) !== false){
+                $lineparts = explode("=",$line);
+                if ($lineparts[0] == $configvalue){
+                    if (sizeof($lineparts) < 3 && sizeof($lineparts) > 1){ $results = $lineparts[1];}
+                    break;
+                }
+            }
+        }
+        fclose($file_handle);
+        return trim($results);
+    }
+    
+    function close_complaint($moderator,$id,$verdict){
                 global $configfile;
-		$closedate = date("Y-m-d H:i:s");
+        $closedate = date("Y-m-d H:i:s");
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
@@ -345,14 +398,14 @@
                 return $results;
         }
 
-	function delete_complaint($id){
-		global $configfile;
+    function delete_complaint($id){
+        global $configfile;
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbcoctable");
-		if (empty($id)){ $results = "failed, message id can not be blank"; return $results; exit; }
+        if (empty($id)){ $results = "failed, message id can not be blank"; return $results; exit; }
                 if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
@@ -365,18 +418,18 @@
                 $results = $query;
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function update_complaint_modnotes($notes,$id){
-		global $configfile;
+    function update_complaint_modnotes($notes,$id){
+        global $configfile;
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbcoctable");
-		if (empty($notes)){ $results = "failed, notes can not be blank"; return $results; exit; }
-		if (empty($id)){ $results = "failed, id can not be blank"; return $results; exit; }
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        if (empty($notes)){ $results = "failed, notes can not be blank"; return $results; exit; }
+        if (empty($id)){ $results = "failed, id can not be blank"; return $results; exit; }
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
@@ -388,11 +441,11 @@
                 $results = $query;
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function claim_complaint($moderator,$id){
-		global $configfile;
-		$dbserver = get_config_value($configfile,"dbserver");
+    function claim_complaint($moderator,$id){
+        global $configfile;
+        $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
@@ -402,88 +455,88 @@
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("UPDATE " . trim($dbtable) . " SET moderator='" . trim($moderator) . "' WHERE id='" . trim($id) . "'");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
-		$results = $query;
+        $results = $query;
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function add_abusecomplaint($from,$about,$dtofproblem,$gamenumber,$summary,$message,$screenshoturl){
-		global $configfile;
-		$results = "unknown";
-		if (empty($from)){ $results = "failed, from user name can not be blank"; return $results; exit; }
-		if (empty($about)){ $results = "failed, about user name can not be blank"; return $results; exit; }
-		if (empty($dtofproblem)){ $results = "failed, date / time of problem can not be blank"; return results; exit; }
-		if (empty($summary)){ $results = "failed, summary can not be blank"; return $results; exit; }
-		if (empty($message)){ $results = "failed, message can not be blank"; return $results; exit; }
-		$dbserver = get_config_value($configfile,"dbserver");
+    function add_abusecomplaint($from,$about,$dtofproblem,$gamenumber,$summary,$message,$screenshoturl){
+        global $configfile;
+        $results = "unknown";
+        if (empty($from)){ $results = "failed, from user name can not be blank"; return $results; exit; }
+        if (empty($about)){ $results = "failed, about user name can not be blank"; return $results; exit; }
+        if (empty($dtofproblem)){ $results = "failed, date / time of problem can not be blank"; return results; exit; }
+        if (empty($summary)){ $results = "failed, summary can not be blank"; return $results; exit; }
+        if (empty($message)){ $results = "failed, message can not be blank"; return $results; exit; }
+        $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbusertable");
-		$dbcoctable = get_config_value($configfile,"dbcoctable");
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        $dbcoctable = get_config_value($configfile,"dbcoctable");
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($dbcoctable)){ $results = "failed, database cockatrice code of conduct report table can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (empty($dbcoctable)){ $results = "failed, database cockatrice code of conduct report table can not be blank"; return $results; exit; }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("SELECT name FROM " . trim($dbtable) . " WHERE name='" . trim($about) . "'");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
-		$row = mysql_fetch_array($query);
-		if (strtolower(trim($about)) == strtolower(trim($row['name']))){ $reguser = "1"; } else { $reguser = "0"; }
-		$query = mysql_query("INSERT into " . trim($dbcoctable) . " (userfrom,userabout,aboutreguser,dtofproblem,gamenumber,briefdescription,message,datereported,screenshoturl) VALUES ('" . mysql_real_escape_string(trim($from)) . "','" . mysql_real_escape_string(trim($about)) . "','" . mysql_real_escape_string($reguser) . "','" . mysql_real_escape_string(trim(mysql_real_escape_string($dtofproblem))) . "','" . mysql_real_escape_string(trim($gamenumber)) . "','" . mysql_real_escape_string(trim(mysql_real_escape_string($summary))) . "','" . trim(mysql_real_escape_string($message)) . "','" . date("Y-m-d H:i:s") . "','" . trim(mysql_real_escape_string($screenshoturl)) . "')");
-		$results = $query;
-		mysql_close($dbconnection);
-		return $results;	
-	}
+        $row = mysql_fetch_array($query);
+        if (strtolower(trim($about)) == strtolower(trim($row['name']))){ $reguser = "1"; } else { $reguser = "0"; }
+        $query = mysql_query("INSERT into " . trim($dbcoctable) . " (userfrom,userabout,aboutreguser,dtofproblem,gamenumber,briefdescription,message,datereported,screenshoturl) VALUES ('" . mysql_real_escape_string(trim($from)) . "','" . mysql_real_escape_string(trim($about)) . "','" . mysql_real_escape_string($reguser) . "','" . mysql_real_escape_string(trim(mysql_real_escape_string($dtofproblem))) . "','" . mysql_real_escape_string(trim($gamenumber)) . "','" . mysql_real_escape_string(trim(mysql_real_escape_string($summary))) . "','" . trim(mysql_real_escape_string($message)) . "','" . date("Y-m-d H:i:s") . "','" . trim(mysql_real_escape_string($screenshoturl)) . "')");
+        $results = $query;
+        mysql_close($dbconnection);
+        return $results;    
+    }
 
-	function send_email($username,$subject,$message){
-		global $configfile;
+    function send_email($username,$subject,$message){
+        global $configfile;
                 $results = "unknown";
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-		if (empty($subject)){ $results = "failed, subject can not be blank"; return $results; exit; }
-		if (empty($message)){ $results = "failed, message can not be blank"; return $results; exit; }
-		$usersemailaddress = get_user_data($username,"email");
-		if (!empty($usersemailaddress)){
-			$message = wordwrap($message, 70, "\r\n");
-			$results = mail($usersemailaddress,$subject,$message);
-		} else {
-			$results = "warning, user does not have an email address associated with account";
-		}
-		return $results;
-	}
-	
-	function get_registered_usercount()
-	{
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
-		$dbusername = get_config_value($configfile,"dbusername");
-		$dbpassword = get_config_value($configfile,"dbpassword");
-		$dbname = get_config_value($configfile,"dbname");
-		$dbtable = get_config_value($configfile,"dbusertable");
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
-		if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
-		if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
-		if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-		if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
-		if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		$query = mysql_query("SELECT count(*) FROM " . trim($dbtable));
-		if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
-		while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
-		mysql_close($dbconnection);
-		return $results;	
-	}
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+        if (empty($subject)){ $results = "failed, subject can not be blank"; return $results; exit; }
+        if (empty($message)){ $results = "failed, message can not be blank"; return $results; exit; }
+        $usersemailaddress = get_user_data($username,"email");
+        if (!empty($usersemailaddress)){
+            $message = wordwrap($message, 70, "\r\n");
+            $results = mail($usersemailaddress,$subject,$message);
+        } else {
+            $results = "warning, user does not have an email address associated with account";
+        }
+        return $results;
+    }
+    
+    function get_registered_usercount()
+    {
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
+        $dbusername = get_config_value($configfile,"dbusername");
+        $dbpassword = get_config_value($configfile,"dbpassword");
+        $dbname = get_config_value($configfile,"dbname");
+        $dbtable = get_config_value($configfile,"dbusertable");
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+        if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
+        if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+        if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+        $query = mysql_query("SELECT count(*) FROM " . trim($dbtable));
+        if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+        while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
+        mysql_close($dbconnection);
+        return $results;    
+    }
 
-	function locate_username_byid($userid){
-		global $configfile;
+    function locate_username_byid($userid){
+        global $configfile;
                 $results = "unknown";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
@@ -499,15 +552,15 @@
                 $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("SELECT * FROM " . trim($dbtable) . " WHERE id='" . trim($userid) . "'");
-		if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+        if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 $row = mysql_fetch_array($query);
-		$results = $row['name'];
-		mysql_close($dbconnection);
+        $results = $row['name'];
+        mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function locate_username_byemail($emailaddress){
-		global $configfile;
+    function locate_username_byemail($emailaddress){
+        global $configfile;
                 $results = "unknown";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
@@ -528,21 +581,21 @@
                 $results = $row['name'];
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function dont_allow_blank($database_value)
-	{
-		if (strlen($database_value) < 1)
-		{
-			return " ";
-		}
-		else
-		{
-			return $database_value;
-		}
-	}
-	
-	function get_user_data($username, $date_to_collect)
+    function dont_allow_blank($database_value)
+    {
+        if (strlen($database_value) < 1)
+        {
+            return " ";
+        }
+        else
+        {
+            return $database_value;
+        }
+    }
+    
+    function get_user_data($username, $date_to_collect)
     {
         global $configfile;
 
@@ -554,7 +607,7 @@
         $db_connection = connect_to_database($db_server,$db_username,$db_password,$db_name);
 
         $query = mysql_query("SELECT * FROM " . trim($db_table) . " WHERE LOWER(name)='" . mysql_real_escape_string(strtolower(trim($username))) . "'") or die(mysql_error());
-		
+        
         $row = mysql_fetch_array($query);
 
         $date_to_collect = strtolower(trim($date_to_collect));
@@ -562,90 +615,90 @@
         mysql_close($db_connection);
         return $row["$date_to_collect"];
     }
-	
-	function add_user($username,$password,$email){
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
-		$dbusername = get_config_value($configfile,"dbusername");
-		$dbpassword = get_config_value($configfile,"dbpassword");
-		$dbname = get_config_value($configfile,"dbname");
-		$dbtable = get_config_value($configfile,"dbusertable");
-		$requireverification = get_config_value($configfile,"requireaccountverification");
-		$encryptedpassword = crypt_password($password,'');
-		$registrationdate = date("Y-m-d H:i:s");
-		$emailexists = check_if_email_exists($email);
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-		if (empty($password)){ $results = "failed, password can not be blank"; return $results; exit; }
-		if (empty($email)){ $results = "failed, email can not be blank"; return $results; exit; }
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
-		if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
-		if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
-		if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-		if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($registrationdate)){ $results = "failed, registration date can not be blank"; return $results; exit; }
-		if (empty($requireverification)){ $results = "failed, registration requirement can not be blank"; return $results; exit; }
+    
+    function add_user($username,$password,$email){
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
+        $dbusername = get_config_value($configfile,"dbusername");
+        $dbpassword = get_config_value($configfile,"dbpassword");
+        $dbname = get_config_value($configfile,"dbname");
+        $dbtable = get_config_value($configfile,"dbusertable");
+        $requireverification = get_config_value($configfile,"requireaccountverification");
+        $encryptedpassword = crypt_password($password,'');
+        $registrationdate = date("Y-m-d H:i:s");
+        $emailexists = check_if_email_exists($email);
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+        if (empty($password)){ $results = "failed, password can not be blank"; return $results; exit; }
+        if (empty($email)){ $results = "failed, email can not be blank"; return $results; exit; }
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+        if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
+        if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+        if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+        if (empty($registrationdate)){ $results = "failed, registration date can not be blank"; return $results; exit; }
+        if (empty($requireverification)){ $results = "failed, registration requirement can not be blank"; return $results; exit; }
 
-		// account restriction filters
-		if (strpos(strtolower($email),'@trbvm.com') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
-		if (strpos(strtolower($email),'bardnarson') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
-		if (strpos(strtolower($email),'barnarson') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
-		if (strpos(strtolower($email),'ryanbraundunn') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
-		
-		if (empty($emailexists)){
-			$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
-        	        if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-			if (strtolower($requireverification) == "yes"){
-				$query = mysql_query("INSERT INTO " . trim($dbtable) . " (name,password_sha512,email,active,registrationDate) VALUES ('" . mysql_real_escape_string(trim($username)) . "','" . trim($encryptedpassword) . "','" . mysql_real_escape_string(trim($email)) . "',0,'" . $registrationdate . "')");
-				if ($query){
-					generate_accountverificationfile($username);
-					// $results = "Successfully created user account.<br>An email verification will be sent shortly.<br>";
-					$results = '<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account. Activation emails can take up to 10 minutes to receive so please be patient.<br>If your activation email does not arrive please contact a moderator and ask to activate your account or use our contact us link on our main site.<br><br>If you do not see a link in your email, please view source (or show original) of the email.<br>Chances are your email client/provider is incorrectly identifying the email as a phishing email and hiding the link for security reasons.<br><b>ALL THE MAJOR EMAIL PROVIDERS DO THIS! (GMAIL,YAHOO,AOL,HOTMAIL)</b><br>To view source using one of those four mentioned try the following:<br><br><a href="http://www.woogerworks.com/index.php/component/content/article?id=105">How to view email sources for yahoo,gmail,hotmail, and aol mail.</a></center>';
-				} else {
-					$results = "failed, " . mysql_error();
-				}
-			} else {
-				$query = mysql_query("INSERT INTO " . trim($dbtable) . " (name,password_sha512,email,active,registrationDate) VALUES ('" . mysql_real_escape_string(trim($username)) . "','" . trim($encryptedpassword) . "','" . mysql_real_escape_string(trim($email)) . "',1,'" . $registrationdate . "')");
-				if ($query){ 
-					$results = "Successfully created user account."; 
-				} else { 
-					$results = "failed, " . mysql_error(); 
-				}
-			}
-			mysql_close($dbconnection);
-			return $results;
-		} else {
-			$results = "Email address already in use.";
-			return $results;
-		}
-	}
+        // account restriction filters
+        if (strpos(strtolower($email),'@trbvm.com') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+        if (strpos(strtolower($email),'bardnarson') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+        if (strpos(strtolower($email),'barnarson') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+        if (strpos(strtolower($email),'ryanbraundunn') !== false) { $results = "failed, email address is not allowed"; return $results; exit; }
+        
+        if (empty($emailexists)){
+            $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+                    if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+            if (strtolower($requireverification) == "yes"){
+                $query = mysql_query("INSERT INTO " . trim($dbtable) . " (name,password_sha512,email,active,registrationDate) VALUES ('" . mysql_real_escape_string(trim($username)) . "','" . trim($encryptedpassword) . "','" . mysql_real_escape_string(trim($email)) . "',0,'" . $registrationdate . "')");
+                if ($query){
+                    generate_accountverificationfile($username);
+                    // $results = "Successfully created user account.<br>An email verification will be sent shortly.<br>";
+                    $results = '<center>Your account has been created and is set to disabled. An activation link has been sent to the email address you entered.<br>Please following the activation link sent in the email to enable your account. Activation emails can take up to 10 minutes to receive so please be patient.<br>If your activation email does not arrive please contact a moderator and ask to activate your account or use our contact us link on our main site.<br><br>If you do not see a link in your email, please view source (or show original) of the email.<br>Chances are your email client/provider is incorrectly identifying the email as a phishing email and hiding the link for security reasons.<br><b>ALL THE MAJOR EMAIL PROVIDERS DO THIS! (GMAIL,YAHOO,AOL,HOTMAIL)</b><br>To view source using one of those four mentioned try the following:<br><br><a href="http://www.woogerworks.com/index.php/component/content/article?id=105">How to view email sources for yahoo,gmail,hotmail, and aol mail.</a></center>';
+                } else {
+                    $results = "failed, " . mysql_error();
+                }
+            } else {
+                $query = mysql_query("INSERT INTO " . trim($dbtable) . " (name,password_sha512,email,active,registrationDate) VALUES ('" . mysql_real_escape_string(trim($username)) . "','" . trim($encryptedpassword) . "','" . mysql_real_escape_string(trim($email)) . "',1,'" . $registrationdate . "')");
+                if ($query){ 
+                    $results = "Successfully created user account."; 
+                } else { 
+                    $results = "failed, " . mysql_error(); 
+                }
+            }
+            mysql_close($dbconnection);
+            return $results;
+        } else {
+            $results = "Email address already in use.";
+            return $results;
+        }
+    }
 
-	function delete_user($username){
-		global $configfile;
+    function delete_user($username){
+        global $configfile;
                 $results = "unknown";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbusertable");
-		if (empty($username)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+        if (empty($username)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
-		if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-		if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+        if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("DELETE FROM " . trim($dbtable) . " WHERE name='" . trim($username) . "'");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
-                return $results;	
-	}
+                return $results;    
+    }
 
-	function update_user_table($username,$tablecolumn,$tablecolumnvalue){
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
+    function update_user_table($username,$tablecolumn,$tablecolumnvalue){
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
@@ -654,105 +707,105 @@
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-		if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-		if (empty($tablecolumn)){ $results = "failed, table column name can not be blank"; return $results; exit; }
-		if (strtolower($tablecolumn) == "password_sha512"){ $tablecolumnvalue = crypt_password($tablecolumnvalue,''); }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
-		if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		if (strtolower($tablecolumn) == "country") { $tablecolumnvalue = strtolower($tablecolumnvalue); }
-		if (strtolower($tablecolumn) == "gender") { $tablecolumnvalue = strtolower($tablecolumnvalue); }
-		$query = mysql_query("UPDATE " . trim($dbtable) . " SET " . trim($tablecolumn) . "='" . mysql_real_escape_string(trim($tablecolumnvalue)) . "' WHERE name='" . mysql_real_escape_string(trim($username)) . "'");
+        if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+        if (empty($tablecolumn)){ $results = "failed, table column name can not be blank"; return $results; exit; }
+        if (strtolower($tablecolumn) == "password_sha512"){ $tablecolumnvalue = crypt_password($tablecolumnvalue,''); }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+        if (strtolower($tablecolumn) == "country") { $tablecolumnvalue = strtolower($tablecolumnvalue); }
+        if (strtolower($tablecolumn) == "gender") { $tablecolumnvalue = strtolower($tablecolumnvalue); }
+        $query = mysql_query("UPDATE " . trim($dbtable) . " SET " . trim($tablecolumn) . "='" . mysql_real_escape_string(trim($tablecolumnvalue)) . "' WHERE name='" . mysql_real_escape_string(trim($username)) . "'");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
-	
-	function add_ban($username,$ipaddress,$modname,$starttime,$duration,$reason,$displayreason){
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
+    }
+    
+    function add_ban($username,$ipaddress,$modname,$starttime,$duration,$reason,$displayreason){
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbusertable = get_config_value($configfile,"dbusertable");
-		$dbtable = get_config_value($configfile,"dbbantable");
-		if (empty($modname)){ $results = "failed, moderator name can not be blank"; return $results; exit; }
-		if (empty($starttime)){ $starttime = date("Y-m-d H:i:s"); }
-		if (empty($reason)){ $results = "failed, reason can not be blank"; return $results; exit; }
-		if (empty($displayreason)){ $displayreason = $reason; }
+        $dbtable = get_config_value($configfile,"dbbantable");
+        if (empty($modname)){ $results = "failed, moderator name can not be blank"; return $results; exit; }
+        if (empty($starttime)){ $starttime = date("Y-m-d H:i:s"); }
+        if (empty($reason)){ $results = "failed, reason can not be blank"; return $results; exit; }
+        if (empty($displayreason)){ $displayreason = $reason; }
                 if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-		if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($dbusertable)){ $results = "failed, database user table name can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+        if (empty($dbusertable)){ $results = "failed, database user table name can not be blank"; return $results; exit; }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		$query = mysql_query("SELECT id FROM " . $dbusertable . " WHERE name='" . $modname . "'");
-		$row = mysql_fetch_array($query);
-		if (!$row){ $results = "failed, moderator not found"; return $results; exit; }
-		$adminid = $row['id'];
+        $query = mysql_query("SELECT id FROM " . $dbusertable . " WHERE name='" . $modname . "'");
+        $row = mysql_fetch_array($query);
+        if (!$row){ $results = "failed, moderator not found"; return $results; exit; }
+        $adminid = $row['id'];
                 $query = mysql_query("INSERT INTO " . trim($dbtable) . "(user_name,ip_address,id_admin,time_from,minutes,reason,visible_reason) VALUES ('" . $username . "','" . $ipaddress . "','" . $adminid . "','" . $starttime . "'," . $duration . ",'" . mysql_real_escape_string($reason) . "','" . mysql_real_escape_string($displayreason) . "')");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
-		return $results;
-	}
+        return $results;
+    }
 
-	function delete_ban($username,$timestamp){
-		global $configfile;
+    function delete_ban($username,$timestamp){
+        global $configfile;
                 $results = "unknown";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
-		$dbtable = get_config_value($configfile,"dbbantable");
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        $dbtable = get_config_value($configfile,"dbbantable");
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($timestamp)){ $results = "failed, time stamp can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (empty($timestamp)){ $results = "failed, time stamp can not be blank"; return $results; exit; }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		if (trim(strtolower($timestamp)) == "all"){
-			$query = mysql_query("DELETE FROM " . trim($dbtable) . " WHERE user_name='" . trim($username) . "'");
-		} else {
-			$query = mysql_query("DELETE FROM " . trim($dbtable) . " WHERE user_name='" . trim(mysql_real_escape_string($username)) . "' AND time_from='" . trim($timestamp) . "'");
-		}
+        if (trim(strtolower($timestamp)) == "all"){
+            $query = mysql_query("DELETE FROM " . trim($dbtable) . " WHERE user_name='" . trim($username) . "'");
+        } else {
+            $query = mysql_query("DELETE FROM " . trim($dbtable) . " WHERE user_name='" . trim(mysql_real_escape_string($username)) . "' AND time_from='" . trim($timestamp) . "'");
+        }
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function add_servermessage($serverid,$timestamp,$message){
-		global $configfile;
+    function add_servermessage($serverid,$timestamp,$message){
+        global $configfile;
                 $results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
+        $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbmessagetable");
-		if (empty($serverid)){ $serverid = get_config_value($configfile,"serverid"); }
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        if (empty($serverid)){ $serverid = get_config_value($configfile,"serverid"); }
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($serverid)){ $results = "failed, id of server can not be blank"; return $results; exit; }
-		if (empty($message)){ $results = "failed, server message can not be blank"; return $results; exit; }
-		if (empty($timestamp)){ $timestamp = date("Y-m-d H:i:s"); }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (empty($serverid)){ $results = "failed, id of server can not be blank"; return $results; exit; }
+        if (empty($message)){ $results = "failed, server message can not be blank"; return $results; exit; }
+        if (empty($timestamp)){ $timestamp = date("Y-m-d H:i:s"); }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("INSERT INTO " . trim($dbtable) . " (id_server,timest,message) VALUES (" . trim($serverid) . ",'" . trim($timestamp) . "','" . trim(mysql_real_escape_string($message)) . "')");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function delete_servermessage($serverid,$timestamp){
-		global $configfile;
+    function delete_servermessage($serverid,$timestamp){
+        global $configfile;
                 $results = "unknown";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
@@ -760,25 +813,25 @@
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbmessagetable");
                 if (empty($id)){ $serverid = get_config_value($configfile,"serverid"); }
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
                 if (empty($timestamp)){ $results = "failed, time stamp can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("DELETE FROM " . trim($dbtable) . " WHERE timest='" . trim($timestamp) . "'");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
-	
-	function delete_dbrows($count,$dbtable){
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
-         	$dbusername = get_config_value($configfile,"dbusername");
+    }
+    
+    function delete_dbrows($count,$dbtable){
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
+            $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
@@ -790,70 +843,70 @@
                 $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 if (trim(strtolower($count)) == "all"){
-                	$query = mysql_query("DELETE FROM " . trim($dbtable));
+                    $query = mysql_query("DELETE FROM " . trim($dbtable));
                 } else {
-	                $query = mysql_query("DELETE FROM " . trim($dbtable) . " limit " . $count);
-	        }
+                    $query = mysql_query("DELETE FROM " . trim($dbtable) . " limit " . $count);
+            }
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
-	
-	function get_playercount(){
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
-            	$dbusername = get_config_value($configfile,"dbusername");
-              	$dbpassword = get_config_value($configfile,"dbpassword");
+    }
+    
+    function get_playercount(){
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
+                $dbusername = get_config_value($configfile,"dbusername");
+                $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbsessiontable");
                 if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
-               	if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-             	if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-             	$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+                if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+                if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+                $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("SELECT count(*) FROM " . trim($dbtable) . " WHERE end_time IS NULL");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function get_modcount(){
-		global $configfile;
+    function get_modcount(){
+        global $configfile;
                 $results = "unknown";
-		$count = 0;
+        $count = 0;
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbsessiontable");
-		$dbusertable = get_config_value($configfile,"dbusertable");
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        $dbusertable = get_config_value($configfile,"dbusertable");
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($dbusertable)){ $results = "failed, database users table can not be blank"; return results; exit; }
+        if (empty($dbusertable)){ $results = "failed, database users table can not be blank"; return results; exit; }
                 $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("SELECT name  FROM " . trim($dbusertable) . " WHERE admin != 0");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 while ($row = mysql_fetch_array($query)){
-			$query2 = mysql_query("SELECT * FROM " . trim($dbtable) . " WHERE user_name = '" . $row['name'] . "' AND end_time is NULL");
-			while ($row2 = mysql_fetch_array($query2)){ $count = $count + 1; }
-		}
+            $query2 = mysql_query("SELECT * FROM " . trim($dbtable) . " WHERE user_name = '" . $row['name'] . "' AND end_time is NULL");
+            while ($row2 = mysql_fetch_array($query2)){ $count = $count + 1; }
+        }
                 mysql_close($dbconnection);
                 $results = $count;
-		return $results;
-	}
-	
-	function get_replaycount(){
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
+        return $results;
+    }
+    
+    function get_replaycount(){
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
@@ -870,57 +923,57 @@
                 while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
                 mysql_close($dbconnection);
                 return $results;
-	}
-	
-	function get_uptimedatacount(){
-		global $configfile;
-		$results = "unknown";
-		$dbserver = get_config_value($configfile,"dbserver");
-		$dbusername = get_config_value($configfile,"dbusername");
-		$dbpassword = get_config_value($configfile,"dbpassword");
-		$dbname = get_config_value($configfile,"dbname");
-		$dbtable = get_config_value($configfile,"dbuptimetable");
-		if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
-		if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
-		if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
-		if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
-		if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
-		if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		$query = mysql_query("SELECT count(*) FROM " . trim($dbtable));
-		if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
-		while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
-		mysql_close($dbconnection);
-		return $results;	
-	}
+    }
+    
+    function get_uptimedatacount(){
+        global $configfile;
+        $results = "unknown";
+        $dbserver = get_config_value($configfile,"dbserver");
+        $dbusername = get_config_value($configfile,"dbusername");
+        $dbpassword = get_config_value($configfile,"dbpassword");
+        $dbname = get_config_value($configfile,"dbname");
+        $dbtable = get_config_value($configfile,"dbuptimetable");
+        if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
+        if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
+        if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
+        if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
+        if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+        $query = mysql_query("SELECT count(*) FROM " . trim($dbtable));
+        if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+        while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
+        mysql_close($dbconnection);
+        return $results;    
+    }
 
 
-	function get_session_data($username,$data,$state){
-		global $configfile;
-		$results = "unknown";
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-		if (empty($data)){ $results = "failed, data to collect can not be blank"; return $results; exit; }
-		if (empty($state)){ $state = "offline"; }
-		$dbserv = get_config_value($configfile,"dbserver");
-		if (strpos(strtolower($dbserver),"fail") !== false){ $results = strtolower($dbserver); return $results; exit; }
-		$dbuser = get_config_value($configfile,"dbusername");
-		if (strpos(strtolower($dbuser),"fail") !== false){ $results = strtolower($dbuser); return $results; exit; }
-		$dbpass = get_config_value($configfile,"dbpassword");
-		if (strpos(strtolower($dbpass),"fail") !== false){ $results = strtolower($dbpass); return $results; exit; }
-		$dbname = get_config_value($configfile,"dbname");
-		if (strpos(strtolower($dbname),"fail") !== false){ $results = strtolower($dbname); return $results; exit; }
-		$dbtable = get_config_value($configfile,"dbsessiontable");
-		if (strpos(strtolower($dbtable),"fail") !== false){ $results = strtolower($dbtable); return $results; exit; }
-		$dbconnection = connect_to_database($dbserv,$dbuser,$dbpass,$dbname);
-		if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		$query = mysql_query("SELECT * from " . $dbtable  . " where user_name='" . $username . "' ORDER BY id DESC limit 1");
-		if (!query){ $results = "failed, " . mysql_error(); return $results; exit; }
-		$row = mysql_fetch_array($query);
-		if (!row){ $results = "failed, unable to locate user session data information (UserNotLoggedIn)"; return $results; exit; }
-		switch (strtolower($data)){
-			case 'id':
-				$results = $row['id'];
-				break;
+    function get_session_data($username,$data,$state){
+        global $configfile;
+        $results = "unknown";
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+        if (empty($data)){ $results = "failed, data to collect can not be blank"; return $results; exit; }
+        if (empty($state)){ $state = "offline"; }
+        $dbserv = get_config_value($configfile,"dbserver");
+        if (strpos(strtolower($dbserver),"fail") !== false){ $results = strtolower($dbserver); return $results; exit; }
+        $dbuser = get_config_value($configfile,"dbusername");
+        if (strpos(strtolower($dbuser),"fail") !== false){ $results = strtolower($dbuser); return $results; exit; }
+        $dbpass = get_config_value($configfile,"dbpassword");
+        if (strpos(strtolower($dbpass),"fail") !== false){ $results = strtolower($dbpass); return $results; exit; }
+        $dbname = get_config_value($configfile,"dbname");
+        if (strpos(strtolower($dbname),"fail") !== false){ $results = strtolower($dbname); return $results; exit; }
+        $dbtable = get_config_value($configfile,"dbsessiontable");
+        if (strpos(strtolower($dbtable),"fail") !== false){ $results = strtolower($dbtable); return $results; exit; }
+        $dbconnection = connect_to_database($dbserv,$dbuser,$dbpass,$dbname);
+        if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
+        $query = mysql_query("SELECT * from " . $dbtable  . " where user_name='" . $username . "' ORDER BY id DESC limit 1");
+        if (!query){ $results = "failed, " . mysql_error(); return $results; exit; }
+        $row = mysql_fetch_array($query);
+        if (!row){ $results = "failed, unable to locate user session data information (UserNotLoggedIn)"; return $results; exit; }
+        switch (strtolower($data)){
+            case 'id':
+                $results = $row['id'];
+                break;
                         case 'user_name':
                                 $results = $row['user_name'];
                                 break;
@@ -941,17 +994,17 @@
                 }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function generate_accountverificationfile($username){
-		global $configfile;
-		$tempfolder = get_config_value($configfile,"tempregverfilefolder");
-		$filename = generateRandomString();
-		$usersemailaddress = get_user_data($username,"email");
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-		if (empty($tempfolder)){ $results = "failed, temp registration verification folder name can not be blank"; return $results; exit; }
-		if (empty($filename)){ $results = "failed, temp file name can not be blank"; return $results; exit; }
-		if (empty($usersemailaddress)){ $results = "failed, email address can not be blank"; return $results; exit; }
+    function generate_accountverificationfile($username){
+        global $configfile;
+        $tempfolder = get_config_value($configfile,"tempregverfilefolder");
+        $filename = generateRandomString();
+        $usersemailaddress = get_user_data($username,"email");
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+        if (empty($tempfolder)){ $results = "failed, temp registration verification folder name can not be blank"; return $results; exit; }
+        if (empty($filename)){ $results = "failed, temp file name can not be blank"; return $results; exit; }
+        if (empty($usersemailaddress)){ $results = "failed, email address can not be blank"; return $results; exit; }
                 file_put_contents($tempfolder . "/" . $filename . ".php","<!DOCTYPE html>\n",LOCK_EX);
                 file_put_contents($tempfolder . "/" . $filename . ".php","<head>\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".php","<title>Account Verification</title>\n",FILE_APPEND);
@@ -973,28 +1026,28 @@
                 file_put_contents($tempfolder . "/" . $filename . ".php","</body>\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".php","</html>\n",FILE_APPEND);
 
-		file_put_contents($tempfolder . "/" . $filename . ".mail","To: " . $usersemailaddress . "\n",LOCK_EX);
-		file_put_contents($tempfolder . "/" . $filename . ".mail","From: do-not-reply@woogerworks.com\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".mail","Subject: Cockatrice Account Verification\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".mail","\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to activate your cockatrice user account:\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".mail","To: " . $usersemailaddress . "\n",LOCK_EX);
+        file_put_contents($tempfolder . "/" . $filename . ".mail","From: do-not-reply@woogerworks.com\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".mail","Subject: Cockatrice Account Verification\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".mail","\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to activate your cockatrice user account:\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","(activation link will only be available till midnight EST time zone)\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","Remember, if you do not see an activation link please check your phishing filter settings.\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","For more information on how to for the more major email providers see our main site.\n",FILE_APPEND);
-	}
+    }
 
-	function generateRandomString($length = 10) {
-    		$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    		$randomString = '';
-    		for ($i = 0; $i < $length; $i++) {
-        		$randomString .= $characters[rand(0, strlen($characters) - 1)];
-    		}
-    		return $randomString;
-	}
+    function generateRandomString($length = 10) {
+            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $randomString = '';
+            for ($i = 0; $i < $length; $i++) {
+                $randomString .= $characters[rand(0, strlen($characters) - 1)];
+            }
+            return $randomString;
+    }
 
-	function check_if_email_exists($emailaddress) {
-		global $configfile;
+    function check_if_email_exists($emailaddress) {
+        global $configfile;
                 $results = "unknown";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
@@ -1013,10 +1066,10 @@
                 while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function check_if_user_exists($username) {
-		global $configfile;
+    function check_if_user_exists($username) {
+        global $configfile;
                 $results = "unknown";
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
@@ -1035,90 +1088,90 @@
                 while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function generate_forgotpasswordfile($usersemailaddress){
-		if (empty($usersemailaddress)){ $results = "failed, users email address can not be blank"; return $results; exit; }
-		global $configfile;
+    function generate_forgotpasswordfile($usersemailaddress){
+        if (empty($usersemailaddress)){ $results = "failed, users email address can not be blank"; return $results; exit; }
+        global $configfile;
                 $tempfolder = get_config_value($configfile,"tempregverfilefolder");
                 $filename = generateRandomString();
-		$username = locate_username_byemail($usersemailaddress);
-		$results = 'success';
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-       		if (empty($tempfolder)){ $results = "failed, temp registration verification folder name can not be blank"; return $results; exit; }
-	       	if (empty($filename)){ $results = "failed, temp file name can not be blank"; return $results; exit; }
-	
-		file_put_contents($tempfolder . "/" . $filename . ".php","<!DOCTYPE html>\n",LOCK_EX);
-		file_put_contents($tempfolder . "/" . $filename . ".php","<head>\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","<title>Account Password Recovery</title>\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","</head>\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","<html>\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","<body>\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","<?php\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","require '../.config_commonfunctions';\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","\$configfile = '../.config';\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","\$results = update_user_table('" . $username . "','password_sha512','" . $username . "');\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","echo '<center>';\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","if (\$results = 'success'){\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","echo 'Your account password has been reset to your username. Please log in to the account management web interface and update your password.<br>';\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","} else {\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","echo 'Password reset failed, please contact us</a> to change your password.<br>';\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","}\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","echo '</center>';\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","?>\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","</body>\n",FILE_APPEND);
-		file_put_contents($tempfolder . "/" . $filename . ".php","</html>\n",FILE_APPEND);
+        $username = locate_username_byemail($usersemailaddress);
+        $results = 'success';
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+            if (empty($tempfolder)){ $results = "failed, temp registration verification folder name can not be blank"; return $results; exit; }
+            if (empty($filename)){ $results = "failed, temp file name can not be blank"; return $results; exit; }
+    
+        file_put_contents($tempfolder . "/" . $filename . ".php","<!DOCTYPE html>\n",LOCK_EX);
+        file_put_contents($tempfolder . "/" . $filename . ".php","<head>\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","<title>Account Password Recovery</title>\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","</head>\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","<html>\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","<body>\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","<?php\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","require '../.config_commonfunctions';\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","\$configfile = '../.config';\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","\$results = update_user_table('" . $username . "','password_sha512','" . $username . "');\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","echo '<center>';\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","if (\$results = 'success'){\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","echo 'Your account password has been reset to your username. Please log in to the account management web interface and update your password.<br>';\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","} else {\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","echo 'Password reset failed, please contact us</a> to change your password.<br>';\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","}\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","echo '</center>';\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","?>\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","</body>\n",FILE_APPEND);
+        file_put_contents($tempfolder . "/" . $filename . ".php","</html>\n",FILE_APPEND);
 
-		file_put_contents($tempfolder . "/" . $filename . ".mail","To: " . $usersemailaddress . "\n",LOCK_EX);
+        file_put_contents($tempfolder . "/" . $filename . ".mail","To: " . $usersemailaddress . "\n",LOCK_EX);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","From: do-not-reply@woogerworks.com\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","Subject: Cockatrice Account Recovery\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","Click the following link to reset your cockatrice user account password:\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","http://cockatrice.woogerworks.com:81/registration/" . $filename . ".php\n",FILE_APPEND);
                 file_put_contents($tempfolder . "/" . $filename . ".mail","(activation link will only be available till midnight EST time zone)\n",FILE_APPEND);
-		return $results;
-	}
+        return $results;
+    }
 
-	function logfailedattempt($username,$reason){
-		global $configfile;
-		$results = 'success';
-		$file = get_config_value($configfile,"failedloginattemptlog");
-		if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
-		if (file_exists($file)){
-			file_put_contents($file,$username . "," . $reason . "," . date('Y/m/d H:i:s') . "<br>\n",FILE_APPEND);
-		} else {
-			file_put_contents($file,"<?php require '.auth_modsession' ?>\n",LOCK_EX);
-			file_put_contents($file,$username . "," . $reason . "," . date('Y/m/d H:i:s') . "<br>\n",FILE_APPEND);
-		}
-		return $results;
-	}
+    function logfailedattempt($username,$reason){
+        global $configfile;
+        $results = 'success';
+        $file = get_config_value($configfile,"failedloginattemptlog");
+        if (empty($username)){ $results = "failed, user name can not be blank"; return $results; exit; }
+        if (file_exists($file)){
+            file_put_contents($file,$username . "," . $reason . "," . date('Y/m/d H:i:s') . "<br>\n",FILE_APPEND);
+        } else {
+            file_put_contents($file,"<?php require '.auth_modsession' ?>\n",LOCK_EX);
+            file_put_contents($file,$username . "," . $reason . "," . date('Y/m/d H:i:s') . "<br>\n",FILE_APPEND);
+        }
+        return $results;
+    }
 
-	function get_file_linecount($file){
-		$linecount = 0;
-		$handle = fopen($file, "r");
-		while(!feof($handle)){
- 			$line = fgets($handle);
-  			$linecount++;
-		}
-		fclose($handle);
-		return $linecount;
-	}
-	
-	function add_ipban($ipaddress){
-		global $configfile;
-		$results = 'success';
-		$filename = generateRandomString();
-		$tempfolder = get_config_value($configfile,"tempregverfilefolder");
-		if (empty($ipaddress)){ $results = "failed, ip address can not be blank"; return $results; exit; }
-		if (empty($filename)){ $results = "failed, file name can not be blank"; return $results; exit; }
-		if (empty($tempfolder)){ $results = "failed, temp folder can not be blank"; return $results; exit; }
-		file_put_contents($tempfolder . "/" . $filename . ".fwrule",$ipaddress,LOCK_EX);
-		return $results;
-	}
-	
-	function add_room($id,$name,$descript,$autoj,$joinm){
-		global $configfile;
-		$dbserver = get_config_value($configfile,"dbserver");
+    function get_file_linecount($file){
+        $linecount = 0;
+        $handle = fopen($file, "r");
+        while(!feof($handle)){
+            $line = fgets($handle);
+            $linecount++;
+        }
+        fclose($handle);
+        return $linecount;
+    }
+    
+    function add_ipban($ipaddress){
+        global $configfile;
+        $results = 'success';
+        $filename = generateRandomString();
+        $tempfolder = get_config_value($configfile,"tempregverfilefolder");
+        if (empty($ipaddress)){ $results = "failed, ip address can not be blank"; return $results; exit; }
+        if (empty($filename)){ $results = "failed, file name can not be blank"; return $results; exit; }
+        if (empty($tempfolder)){ $results = "failed, temp folder can not be blank"; return $results; exit; }
+        file_put_contents($tempfolder . "/" . $filename . ".fwrule",$ipaddress,LOCK_EX);
+        return $results;
+    }
+    
+    function add_room($id,$name,$descript,$autoj,$joinm){
+        global $configfile;
+        $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
@@ -1128,21 +1181,21 @@
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
-		if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
-		if (empty($name)){ $results = "failed, room name can not be blank"; return $results; exit; }
-		if (empty($descript)){ $results = "failed, room description can not be blank"; return $results; exit; }
-		if (empty($autoj)){ $results = "failed, room auto join value can not be blank"; return $results; exit; }
-		if (empty($joinm)){ $results = "failed, room join message can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
+        if (empty($name)){ $results = "failed, room name can not be blank"; return $results; exit; }
+        if (empty($descript)){ $results = "failed, room description can not be blank"; return $results; exit; }
+        if (empty($autoj)){ $results = "failed, room auto join value can not be blank"; return $results; exit; }
+        if (empty($joinm)){ $results = "failed, room join message can not be blank"; return $results; exit; }
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("INSERT INTO " . $dbtable . " (id,name,descr,auto_join,join_message) VALUES ('" . trim(mysql_real_escape_string($id)) . "','" . trim(mysql_real_escape_string($name)) . "','" . trim(mysql_real_escape_string($descript)) . "','" . trim(mysql_real_escape_string($autoj)) . "','" . trim(mysql_real_escape_string($joinm)) . "')");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function add_game_type($id,$gamename){
-		global $configfile;
+    function add_game_type($id,$gamename){
+        global $configfile;
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
@@ -1157,14 +1210,14 @@
                 if (empty($gamename)){ $results = "failed, game name can not be blank"; return $results; exit; }
                 $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-		$query = mysql_query("INSERT INTO " . $dbtable . " (id_room,name) VALUES ('" . trim(mysql_real_escape_string($id)) . "','" . trim(mysql_real_escape_string($gamename)) . "')");
-		if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
+        $query = mysql_query("INSERT INTO " . $dbtable . " (id_room,name) VALUES ('" . trim(mysql_real_escape_string($id)) . "','" . trim(mysql_real_escape_string($gamename)) . "')");
+        if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function delete_room($id){
-		global $configfile;
+    function delete_room($id){
+        global $configfile;
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
@@ -1176,16 +1229,16 @@
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
                 if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
-		$dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
+        $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("DELETE FROM " . $dbtable . " WHERE id='" . $id . "'");
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 mysql_close($dbconnection);
                 return $results;
-	}
+    }
 
-	function delete_gametype($id,$name){
-		global $configfile;
+    function delete_gametype($id,$name){
+        global $configfile;
                 $dbserver = get_config_value($configfile,"dbserver");
                 $dbusername = get_config_value($configfile,"dbusername");
                 $dbpassword = get_config_value($configfile,"dbpassword");
@@ -1197,7 +1250,7 @@
                 if (empty($dbname)){ $results = "failed, database name can not be blank"; return $results; exit; }
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
                 if (empty($id)){ $results = "failed, room id can not be blank"; return $results; exit; }
-		if (empty($name)){ $results = "failed, game name can not be blank"; return $results; exit; }
+        if (empty($name)){ $results = "failed, game name can not be blank"; return $results; exit; }
                 $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
                 $query = mysql_query("DELETE FROM " . $dbtable . " WHERE id_room='" . $id . "' AND name='" . $name . "'");
@@ -1206,5 +1259,5 @@
                 return $results;
 
 
-	}
+    }
 ?>

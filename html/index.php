@@ -21,7 +21,7 @@
 			</tr>
 			<tr><td colspan="4" align="center"><?php if (!empty($banner)){ echo trim($banner) . '<br>'; } ?></td></tr>
 			<tr><td colspan="4"><?php echo '<font size="1">v.' . trim($version) . '</font>'; ?></td></tr>	
-			<tr><td colspan="4" align="right"><a href="forgotpassword.php"><i>Forgot Password?</i></a></td></tr>
+			<tr><td colspan="2" align="center"><a href="changeusername.php"><i>Change Username</i></td><td colspan="2" align="center"><a href="forgotpassword.php"><i>Forgot Password?</i></a></td></tr>
 		</table>
 	</body>
 </html>
