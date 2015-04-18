@@ -56,14 +56,14 @@
             {
                 return "Error: You may only use A-Z, a-z, 0-9, _, -, and . in your new username";
             }
-			else if (preg_match('/^Player_\d+$/', $new)) // New Name Starts "Player_"
-			{
-				return "Error: You cannot start your new username with 'Player_'";
-			}
-			else if (preg_match("/^[a-zA-Z0-9_\\.-]+$/", $old)) // Old Name Is Fine Already
-			{
-				return "Error: You may only change your username if your name was invalid";
-			}
+            else if (preg_match('/^Player_\d+$/', $new)) // New Name Starts "Player_"
+            {
+                return "Error: You cannot start your new username with 'Player_'";
+            }
+            else if (preg_match("/^[a-zA-Z0-9_\\.-]+$/", $old)) // Old Name Is Fine Already
+            {
+                return "Error: You may only change your username if your name was invalid";
+            }
             else if ($info_q[1] > 0) // Moderator
             {
                 return "Error: Moderators may not change their username without approval";
