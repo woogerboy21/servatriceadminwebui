@@ -6,7 +6,7 @@
 	<body>
 		<?php
 			require '.config_commonfunctions';
-			global $configfile;
+        	global $configfile;
 		?>
 		<table align="center" border="1" cellpadding="5">
 			<tr>
@@ -35,8 +35,7 @@
 							}
 							else
 							{
-								echo "You may only use <b>A-Z, a-z, 0-9, _,</b> and <b>-</b> in your username. In addition, your username can't start with \"Player_\"<br/>\n".
-									"Username Is Valid: $username_has_valid_chars<br/>\nUsername Starts With 'Player_': $username_has_bad_name";
+								echo "You may only use <b>A-Z, a-z, 0-9, _,</b> and <b>-</b> in your username. In addition, your username can't start with \"Player_\"<br/>\n";
 							}
 						}
 					?>
