@@ -31,9 +31,8 @@
             <td>
                 <div style="text-align:left;">
                     <ul>
-                        <li>You may use any of the following characters in your name: A-Z, a-z, 0-9, _, -, and .</li>
+                        <li>You may use any of the following characters in your new username: A-Z, a-z, 0-9, _, -, and .</li>
                         <li>You may only have up to 30 characters in your new username</li>
-                        <li>You may only change your username if your old username was invalid</li>
                         <li>You may only change your username <u>once</u></li>
                     </ul>
                 </div>
