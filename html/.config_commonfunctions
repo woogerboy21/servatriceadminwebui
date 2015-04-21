@@ -3,9 +3,11 @@
     $saved_user_id_change_file = "user_changed.txt";
     date_default_timezone_set('.get_config_value($configfile,"timezone").'); // Matches up with MySQL
 
-
     function already_changed_name($configfile, $id_to_find)
     {
+        if (!file_exists($configfile) || !file_get_contents($configfile))
+            file_put_contents($configfile, "\n");
+
         $file_handle = file_get_contents($configfile) or die("Error: Username update failed; Contact support [Error #2]");
         $all_ids = explode("\n", $file_handle);
         
@@ -17,7 +19,7 @@
     
     function write_changed_name($configfile, $id_to_add)
     {
-        $file_handle = fopen($configfile, "a") or die("ERROR IN FOPEN A for $configfile");
+        $file_handle = fopen($configfile, "a") or die("Error: Username update failed; Contact support [Error #3]");
 
         if (fwrite($file_handle, "$id_to_add\n"))
         {
@@ -60,10 +62,10 @@
             {
                 return "Error: You cannot start your new username with 'Player_'";
             }
-            else if (preg_match("/^[a-zA-Z0-9_\\.-]+$/", $old)) // Old Name Is Fine Already
+            /*else if (preg_match("/^[a-zA-Z0-9_\\.-]+$/", $old)) // Old Name Is Fine Already
             {
                 return "Error: You may only change your username if your name was invalid";
-            }
+            }*/
             else if ($info_q[1] > 0) // Moderator
             {
                 return "Error: Moderators may not change their username without approval";
@@ -81,9 +83,10 @@
             
             if (!$username_is_taken) // New Username Is Not Taken
             {
-                if (mysql_query("UPDATE `$ban_table` SET `user_name` = '$new' WHERE `user_name` = '$old'")
-                    && update_user_table($old, 'name', $new)
-                    && write_changed_name($saved_user_id_change_file, $info_q[2]))
+                // 1) Write ID in log; 2) Update ban table; 3) Update user table
+                if (write_changed_name($saved_user_id_change_file, $info_q[2])
+                    && mysql_query("UPDATE `$ban_table` SET `user_name` = '$new' WHERE `user_name` = '$old'")
+                    && update_user_table($old, 'name', $new))
                 {
                     return "Username updated successfully<br/>\"$old\" &rarr; \"$new\"";
                 }   
