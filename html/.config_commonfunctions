@@ -1,7 +1,7 @@
 <?php
     $configfile = ".config";
     $saved_user_id_change_file = "user_changed.txt";
-    date_default_timezone_set('.get_config_value($configfile,"timezone").'); // Matches up with MySQL
+    date_default_timezone_set('.get_config_value($configfile, "timezone").'); // Matches up with MySQL
 
     function already_changed_name($configfile, $id_to_find)
     {
@@ -13,7 +13,7 @@
         
         if (in_array($id_to_find, $all_ids))
             return true;
-        
+
         return false;
     }
     
@@ -62,10 +62,6 @@
             {
                 return "Error: You cannot start your new username with 'Player_'";
             }
-            /*else if (preg_match("/^[a-zA-Z0-9_\\.-]+$/", $old)) // Old Name Is Fine Already
-            {
-                return "Error: You may only change your username if your name was invalid";
-            }*/
             else if ($info_q[1] > 0) // Moderator
             {
                 return "Error: Moderators may not change their username without approval";
@@ -77,6 +73,14 @@
             else if (already_changed_name($saved_user_id_change_file, $info_q[2])) // Already Changed Username Once
             {
                 return "Error: You may only change your username once";
+            }
+            else if (preg_match("/[.,_-]{2,}/", $new)) // New Name Has Two Punctuation Marks In A Row
+            {
+                return "Error: You cannot have two punctuation marks in a row";
+            }
+            else if (!is_numeric($new[0]) && !ctype_alpha($new[0])) // First Character Is Not A Letter Or Number
+            {
+                return "Error: Your username must start with a letter or number";
             }
             
             $username_is_taken = mysql_num_rows(mysql_query("SELECT `id` FROM `$user_table` WHERE name = '$new' AND name != '$old' LIMIT 0,1"));
@@ -101,8 +105,7 @@
         else
         {
             return "Error: Invalid Username/Password combination";
-        }    
-
+        }
     }
     
     function calculate_string($mathString) {
