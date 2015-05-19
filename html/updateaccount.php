@@ -38,10 +38,6 @@
 	                                                                if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
 								}
 							}
-							if (!empty($_POST['admin'])){
-								$results = update_user_table($_POST['name'],"admin",trim($_POST['admin']));
-								if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
-							}
 							if (!empty($_POST['name'])){
 								$results = update_user_table($_POST['name'],"name",trim($_POST['name']));
                                                                 if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
