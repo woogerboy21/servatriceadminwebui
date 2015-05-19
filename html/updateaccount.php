@@ -22,6 +22,12 @@
 				<td colspan="2" align="center">
 					<?php
 						if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+							 if ($_SESSION['username'] !== $_POST['name']){
+                                                                if ($_SESSION['admin'] == 0){
+                                                                        echo "User account not updated";
+                                                                        exit;
+                                                                }
+                                                        }
 							if (!empty($_POST['id'])){
 								$results = update_user_table($_POST['name'],"id",trim($_POST['id']));
                                                                 if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
