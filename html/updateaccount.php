@@ -58,7 +58,7 @@
 								$results = update_user_table($_POST['name'],"email",trim($_POST['email']));
 								if (strpos(strtolower($results),"fail") !== false){ echo $reults; exit; }
 							}
-							if (!empty($_POST['country'])){
+							if (strlen($_POST['country']) > 0){
 								$results = update_user_table($_POST['name'],"country",trim($_POST['country']));
 								if (strpos(strtolower($results),"fail") !== false){ echo $results; exit; }
 							}
