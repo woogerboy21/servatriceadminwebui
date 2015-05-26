@@ -20,6 +20,8 @@
 		<td colspan="2" align="center">
 	<?php
 			$uploaddir = '/tmp/';
+			$maxsize = 64000;
+			if ($_FILES['userfile']['size'] >= $maxsize){ echo "File to large, File must be less than 64k"; exit; }
 			$uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 			echo "<p>";
 			if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
