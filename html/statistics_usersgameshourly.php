@@ -1,6 +1,7 @@
 <?php
 	include '.config_commonfunctions';
 	global $configfile;
+	$serverid = get_config_value($configfile,"serverid");
 	$enabled = get_config_value($configfile,"statsenabled");
 	$timezone = get_config_value($configfile,"timezone");
 	date_default_timezone_set($timezone);
@@ -31,7 +32,7 @@
 		echo '                    var data = google.visualization.arrayToDataTable([';
 		echo '                    [\'Time\', \'Players\', \'Games\'],';
 		$dbconnection = connect_to_database($databaseserver,$databaseusername,$databasepassword,$databasetouse);
-		$query = mysql_query("SELECT * FROM " . $uptimetable . " WHERE timest LIKE '" . $currentdate . " " . $currenthour . "%'");
+		$query = mysql_query("SELECT * FROM " . $uptimetable . " WHERE timest LIKE '" . $currentdate . " " . $currenthour . "%' AND id_server = " . $serverid);
 		while ($row = mysql_fetch_array($query)){
 			echo '[\'' . date_format(date_create($row['timest']), 'h:i:s A') . '\',' . $row['users_count'] . ',' . $row['games_count'] . '],';
 		}
