@@ -23,7 +23,7 @@
 		//date_default_timezone_set($timezone);
 		if (empty($currentdate)){ $currentdate = date('Y-m-d'); }
 		if (empty($currenthour)){ $currenthour = date('H');  }
-	                                 
+	                      
 		echo '<html>';
 		echo '  <head>';
 		echo '      <script type="text/javascript" src="https://www.google.com/jsapi"></script>';
