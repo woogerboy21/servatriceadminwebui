@@ -910,6 +910,7 @@
                 $dbpassword = get_config_value($configfile,"dbpassword");
                 $dbname = get_config_value($configfile,"dbname");
                 $dbtable = get_config_value($configfile,"dbsessiontable");
+                $serverid = get_config_value($configfile,"serverid");
                 if (empty($dbserver)){ $results = "failed, database server can not be blank"; return $results; exit; }
                 if (empty($dbusername)){ $results = "failed, database user name can not be blank"; return $results; exit; }
                 if (empty($dbpassword)){ $results = "failed, database user name password can not be blank"; return $results; exit; }
@@ -917,7 +918,7 @@
                 if (empty($dbtable)){ $results = "failed, database table name can not be blank"; return $results; exit; }
                 $dbconnection = connect_to_database($dbserver,$dbusername,$dbpassword,$dbname);
                 if (strpos(strtolower($dbconnection),"fail") !== false){ $results = strtolower($dbconnection); return $results; exit; }
-                $query = mysql_query("SELECT count(*) FROM " . trim($dbtable) . " WHERE end_time IS NULL");
+                $query = mysql_query("SELECT count(*) FROM " . trim($dbtable) . " WHERE end_time IS NULL and id_server = " . $serverid);
                 if ($query){ $results = "success"; } else { $results = "failed, " . mysql_error(); }
                 while ($row = mysql_fetch_array($query)){ $results = $row['count(*)']; }
                 mysql_close($dbconnection);
