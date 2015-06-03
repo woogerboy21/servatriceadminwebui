@@ -11,6 +11,7 @@
 		       	        $dbname = get_config_value($configfile,"dbname");
                 		$dbtable = get_config_value($configfile,"dbsessiontable");
 		                $dbusertable = get_config_value($configfile,"dbusertable");
+		                $serverid = get_config_value($configfile,"serverid");
         	  		if (empty($dbserver)){ echo "<center>failed to connect to database server, unknown server name</center>"; exit; }
 		               	if (empty($dbusername)){ echo "<center>failed to connect to database server, unknown database user name</center>"; exit; }
 	               		if (empty($dbpassword)){ echo "<center>failed to connect to database server, unknown database user name password</center>"; exit; }
@@ -22,7 +23,7 @@
 	               		$query = mysql_query("SELECT name  FROM " . trim($dbusertable) . " WHERE admin != 0");
 		       	        if ($query){ $results = "success"; } else { echo "failed, " . mysql_error(); }
                 		while ($row = mysql_fetch_array($query)){
-		                        $query2 = mysql_query("SELECT * FROM " . trim($dbtable) . " WHERE user_name = '" . $row['name'] . "' AND end_time is NULL");
+		                        $query2 = mysql_query("SELECT * FROM " . trim($dbtable) . " WHERE user_name = '" . $row['name'] . "' AND end_time is NULL and id_server = " . $serverid);
 	    	      			while ($row2 = mysql_fetch_array($query2)){ 
 						echo "<tr><td>" . $row2['user_name'] . "</td></tr>";
 					}
