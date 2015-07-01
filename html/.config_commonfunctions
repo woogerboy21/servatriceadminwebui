@@ -214,8 +214,14 @@
                     echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:150px'>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
-                        $username = $row['sender_name'];
-                        $name_with_link = "<a href='?username=$username'>$username</a>";
+                        $senderusername = $row['sender_name'];
+                        $name_with_link="";
+                        if (strcmp($username, $senderusername) == 0) {
+                            $name_with_link = "<a href='?username=$senderusername'><font color=\"red\">$senderusername</font></a>";
+                        } else {
+                            $name_with_link = "<a href='?username=$senderusername'>$senderusername</a>";
+                        }
+                        
                     
                         $ip = $row['sender_ip'];
                         $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
@@ -229,8 +235,13 @@
                     {   
                         while ($row = mysql_fetch_array($query_archive))
                         {
-                            $username = $row['sender_name'];
-                            $name_with_link = "<a href='?username=$username'>$username</a>";
+                            $senderusername = $row['sender_name'];
+                            $name_with_link="";
+                            if (strcmp($username, $senderusername) == 0) {
+                                $name_with_link = "<a href='?username=$senderusername'><font color=\"red\">$senderusername</font></a>";
+                            } else {
+                                $name_with_link = "<a href='?username=$senderusername'>$senderusername</a>";
+                            }
                         
                             $ip = $row['sender_ip'];
                             $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
@@ -249,8 +260,13 @@
                     echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:150px'>Game ID</th><th style='width:200px'>Game Name</th><th style='width:150px'>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
-                        $username = $row['sender_name'];
-                        $name_with_link = "<a href='?username=$username'>$username</a>";
+                        $senderusername = $row['sender_name'];
+                        $name_with_link="";
+                        if (strcmp($username, $senderusername) == 0) {
+                            $name_with_link = "<a href='?username=$senderusername'><font color=\"red\">$senderusername</font></a>";
+                        } else {
+                            $name_with_link = "<a href='?username=$senderusername'>$senderusername</a>";
+                        }
                     
                         $ip = $row['sender_ip'];
                         $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
@@ -269,8 +285,13 @@
                     {
                         while ($row = mysql_fetch_array($query_archive))
                         {
-                            $username = $row['sender_name'];
-                            $name_with_link = "<a href='?username=$username'>$username</a>";
+                            $senderusername = $row['sender_name'];
+                            $name_with_link="";
+                            if (strcmp($username, $senderusername) == 0) {
+                                $name_with_link = "<a href='?username=$senderusername'><font color=\"red\">$senderusername</font></a>";
+                            } else {
+                                $name_with_link = "<a href='?username=$senderusername'>$senderusername</a>";
+                            }
                         
                             $ip = $row['sender_ip'];
                             $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
@@ -294,8 +315,13 @@
                     echo "<tr><th style='width:150px'>Sender</th><th style='width:120px'>IP Address</th><th style='width:300px'>Message</th><th style='width:200px'>Receiver</th><th style='width:150px'>Time Stamp</th></tr>\n";
                     while ($row = mysql_fetch_array($query))
                     {
-                        $username = $row['sender_name'];
-                        $name_with_link = "<a href='?username=$username'>$username</a>";
+                        $senderusername = $row['sender_name'];
+                        $name_with_link="";
+                        if (strcmp($username, $senderusername) == 0) {
+                            $name_with_link = "<a href='?username=$senderusername'><font color=\"red\">$senderusername</font></a>";
+                        } else {
+                            $name_with_link = "<a href='?username=$senderusername'>$senderusername</a>";
+                        }
                 
                         $ip = $row['sender_ip'];
                         $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
@@ -312,8 +338,13 @@
                     {
                         while ($row = mysql_fetch_array($query_archive))
                         {
-                            $username = $row['sender_name'];
-                            $name_with_link = "<a href='?username=$username'>$username</a>";
+                            $senderusername = $row['sender_name'];
+                            $name_with_link="";
+                            if (strcmp($username, $senderusername) == 0) {
+                                $name_with_link = "<a href='?username=$senderusername'><font color=\"red\">$senderusername</font></a>";
+                            } else {
+                                $name_with_link = "<a href='?username=$senderusername'>$senderusername</a>";
+                            }
                     
                             $ip = $row['sender_ip'];
                             $ip_with_link = "<a href='?ip_address=$ip'>$ip</a>";
