@@ -10,7 +10,7 @@
 
         $file_handle = file_get_contents($configfile) or die("Error: Username update failed; Contact support [Error #2]");
         $all_ids = explode("\n", $file_handle);
-        
+
         if (in_array($id_to_find, $all_ids))
             return true;
         
@@ -123,60 +123,52 @@
         $db_initial_connection = connect_to_database(get_config_value($configfile,"dbserver"), get_config_value($configfile,"dbusername"), get_config_value($configfile,"dbpassword"), get_config_value($configfile,"dbname"));
 
         if ($use_archive_server)
-        {
             $db_archive_connection = connect_to_database(get_config_value($configfile,"archivedbserver"), get_config_value($configfile,"archivedbusername"), get_config_value($configfile,"archivedbpassword"), get_config_value($configfile,"archivedbname"), true);
-        }
 
         if (strlen($_REQUEST['username']) > 0) // Check if a username is given
-        {
             $username = strtolower(mysql_real_escape_string($_REQUEST['username']));
-        }
 
         if (strlen($_REQUEST['ip_address']) > 0) // Check if IP is given
-        {
             $ip_to_find = mysql_real_escape_string($_REQUEST['ip_address']);
-        }
+
+        if (strlen($_REQUEST['client_id']) > 0) // Check if Client ID is given
+            $client_id = mysql_real_escape_string($_REQUEST['client_id']);
         
         if (intval($_REQUEST['game_id'] > 0)) // Check if Game ID is given
-        {
             $game_id = intval(mysql_real_escape_string($_REQUEST['game_id']));
-        }
         
         if (strlen($_REQUEST['game_name']) > 0) // Check if Game Name is given
-        {
             $game_name = mysql_real_escape_string(strtolower($_REQUEST['game_name']));
-        }
         
         if ($_REQUEST['from_date']) // Check if date range is given
-        {
             $total_time = mysql_real_escape_string($_REQUEST['from_date']);
-        }
+        
+        if (strlen($_REQUEST['message']) > 0) // Check if Message is given
+            $message = mysql_real_escape_string($_REQUEST['message']);
         
         if (count($_REQUEST['type_of_chat']) > 0) // Check if any specific locations are given
         {
             $get_logs_from = array();
             for ($i = 0; $i < 3; $i++)
-            {
                 if (isset($_REQUEST['type_of_chat'][$i]))
-                {
                     $get_logs_from[] = mysql_real_escape_string($_REQUEST['type_of_chat'][$i]);
-                }
-            }
         }
         
         /* BUILD QUERY BASE */
         $max_results_q = (intval($_REQUEST['max_results']) > 0) ? "LIMIT 0," . intval($_REQUEST['max_results']) : "LIMIT 0,500"; // Default is 500
         $user_q = (isset($username)) ? "AND (`sender_name` = '$username' OR `target_name` = '$username')" : "";
         $ip_q = isset($ip_to_find) ? "AND `sender_ip` = '$ip_to_find'" : "";
+        $client_id_q = isset($client_id) ? "AND `clientid` = '$client_id'" : "";
         $game_id_q = isset($game_id) ? "AND (`target_id` = '$game_id' AND `target_type` = 'game')" : "";
         $game_name_q = isset($game_name) ? "AND (`target_name` = '$game_name' AND `target_type` = 'game')" : "";
+        $message_q = isset($message) ? "AND `log_message` LIKE '%$message%'" : "";
 
         switch ($total_time)
         {   
             case "week":
                 $date_q = "AND `log_time` >= DATE_SUB(NOW(), INTERVAL 1 WEEK)";
             break;
-                
+
             case "day":
                 $date_q = "AND `log_time` >= DATE_SUB(NOW(), INTERVAL 1 DAY)";
             break;
@@ -204,8 +196,8 @@
         {
             $target_type_q = (strlen($game_id_q) == 0) ? "AND `target_type` = '{$get_logs_from[$i]}'" : ""; // Builds target query and avoids issues
 
-            $query = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_initial_connection) or die(mysql_error());
-            if ($use_archive_server) $query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $game_id_q $target_type_q $game_name_q ORDER BY -log_time $max_results_q", $db_archive_connection) or die(mysql_error());
+            $query = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $client_id_q $game_id_q $target_type_q $game_name_q $message_q ORDER BY -log_time $max_results_q", $db_initial_connection) or die(mysql_error());
+            if ($use_archive_server) $query_archive = mysql_query("SELECT * FROM `cockatrice_log` WHERE `sender_ip` IS NOT NULL $user_q $date_q $ip_q $client_id_q $game_id_q $target_type_q $game_name_q $message_q ORDER BY -log_time $max_results_q", $db_archive_connection) or die(mysql_error());
             
             switch ($get_logs_from[$i])
             {
